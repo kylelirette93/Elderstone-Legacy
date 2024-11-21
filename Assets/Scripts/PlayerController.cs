@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Tilemaps;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private Tilemap map;
     private Tile playerTile;
 
+    public TextMeshProUGUI healthText;
     public HealthBar healthBar;
     HealthSystem healthSystem = new HealthSystem();
 
@@ -25,6 +28,10 @@ public class PlayerController : MonoBehaviour
         playerLayer.SetTile(initialPosition, playerTile);
     }
 
+    public Vector3Int GetInitialPosition() 
+    {         return initialPosition;
+    }
+
     private void Update()
     {
         if (playerLayer == null || map == null || playerTile == null)
@@ -36,10 +43,14 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            healthSystem.TakeDamage(20);
-            healthBar.SetHealthBar((float)healthSystem.health);
+            healthSystem.TakeDamage(10);
+            float healthPercentage = (float)healthSystem.health / healthSystem.maxHealth;
+            healthBar.SetHealthBar(healthPercentage);
+            UpdateHealthText();
         }
     }
+
+
 
 
     private void HandleInput()
@@ -122,5 +133,10 @@ public class PlayerController : MonoBehaviour
         }
         // If no conditions are met, player can move.
         return true;
+    }
+
+    private void UpdateHealthText()
+    {
+        healthText.text = "HP: " + healthSystem.health.ToString();
     }
 }

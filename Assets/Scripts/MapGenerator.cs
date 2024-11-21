@@ -5,7 +5,8 @@ public class MapGenerator : MonoBehaviour
 {
     public Tilemap map;
     public Tilemap playerLayer;
-    public Tile borderTile, groundTile, chestTile, playerTile;
+    public Tilemap enemyLayer;
+    public Tile borderTile, groundTile, chestTile, playerTile, enemyTile;
     public Tile[] houseTiles;
 
     private int chestsToPlace;
@@ -17,6 +18,8 @@ public class MapGenerator : MonoBehaviour
 
     PlayerController playerController;
     string playerTag = "Player";
+    EnemyController enemyController;
+    string enemyTag = "Enemy";
 
     private void Start()
     {
@@ -25,8 +28,23 @@ public class MapGenerator : MonoBehaviour
         housesToPlace = Random.Range(1, maxHouses);
 
         GenerateMap();
-        playerController = GameObject.FindGameObjectWithTag(playerTag).GetComponent<PlayerController>();
+
+        // Spawn player.
+        playerController = 
+            GameObject.FindGameObjectWithTag
+            (playerTag).GetComponent<PlayerController>();
         playerController.Initialize(playerLayer, playerTile, map);
+
+        // Get player's initial position.
+        Vector3Int playerPosition = playerController.GetInitialPosition();
+        int minDistance = 5;
+
+        // Spawn enemy.
+        enemyController =
+            GameObject.FindGameObjectWithTag
+            (enemyTag).GetComponent<EnemyController>();
+        enemyController.Initialize(enemyLayer, playerLayer, 
+            enemyTile, playerTile, map, playerPosition, minDistance);
     }
 
     private string GenerateMapString(int width, int height)

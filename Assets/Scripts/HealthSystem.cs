@@ -5,10 +5,8 @@ public class HealthSystem
 {
     // Variables
     public int health;
-    const int maxHealth = 100;
+    public int maxHealth = 100;
     public string healthStatus;
-    public int shield;
-    const int maxShield = 100;
     private int _lives;
     public int lives
     {
@@ -47,7 +45,6 @@ public class HealthSystem
         healthStatus = HealthStatus(health);
         // Implement HUD display
         return $"Health: {health}" +
-            $"\nShield: {shield}" +
             $"\nLives: {lives}" +
             $"\nHealth Status: {healthStatus}" +
             $"\nLevel: {level}" +
@@ -56,45 +53,11 @@ public class HealthSystem
     }
 
     public void TakeDamage(int damage)
-    {
-        UnityEngine.Debug.Log("Health and Shield before taking damage:" +
-            "Health: " + health + "Shield: " + shield);
-        // Prevent negative damage input
-        if (damage < 0)
-        {
-            damage = 0;
-        }
-
-        if (damage > shield)
-        {
-            // Remaining damage after the shield absorbs damage
-            int remainingDamage = damage - shield;
-            // Shield should be fully depleted
-            shield = 0;
-            UnityEngine.Debug.Log("Health and shield status now that " +
-                "shield is depleted: " + "Health: " + health + " Shield: " + shield);
-            health -= remainingDamage;
+    { 
+            health -= damage;
 
             // Clamp the health so it stays in range
-            health = Math.Clamp(health, 0, maxHealth);
-        }
-
-        else
-        {
-            shield -= damage;
-
-            // Clamp the shield so it stays in range
-            shield = Math.Clamp(shield, 0, maxShield);
-        }
-
-        UnityEngine.Debug.Log("Health and Shield after taking damage:" +
-            "Health: " + health + "Shield: " + shield);
-
-        if (health <= 0 && lives > 0)
-        {
-            UnityEngine.Debug.Log("Revive function is called.");
-            Revive();
-        }
+            health = Math.Clamp(health, 0, maxHealth);    
     }
 
 
@@ -112,24 +75,11 @@ public class HealthSystem
         health = Math.Clamp(health, 0, maxHealth);
     }
 
-    public void RegenerateShield(int hp)
-    {
-        // Prevent negative regen values
-        if (hp <= 0)
-        {
-            hp = 0;
-        }
-        // Clamp the shield just like health
-        UnityEngine.Debug.Log("Shield before regenerating: " + shield);
-        shield += hp;
-        UnityEngine.Debug.Log("Shield after regenerating: " + shield);
-        shield = Math.Clamp(shield, 0, maxShield);
-    }
+    
 
     public void Revive()
     {
         Heal(100);
-        RegenerateShield(100);
         lives--;
     }
 
@@ -137,7 +87,6 @@ public class HealthSystem
     {
         // Reset all variables to default values
         health = maxHealth;
-        shield = maxShield;
         lives = 3;
         xp = 0;
         level = 1;
