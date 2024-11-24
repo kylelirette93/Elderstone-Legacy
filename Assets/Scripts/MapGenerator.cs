@@ -21,7 +21,7 @@ public class MapGenerator : MonoBehaviour
     EnemyController enemyController;
     string enemyTag = "Enemy";
 
-    private void Start()
+    private void Awake()
     {
         // Random number of chest and houses to place.
         chestsToPlace = Random.Range(1, maxChests);
@@ -33,7 +33,7 @@ public class MapGenerator : MonoBehaviour
         playerController = 
             GameObject.FindGameObjectWithTag
             (playerTag).GetComponent<PlayerController>();
-        playerController.Initialize(playerLayer, playerTile, map);
+        playerController.Initialize(playerLayer, playerTile, enemyLayer, enemyTile, map);
 
         // Get player's initial position.
         Vector3Int playerPosition = playerController.GetInitialPosition();

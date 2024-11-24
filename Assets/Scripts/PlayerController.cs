@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using TMPro;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,16 +10,31 @@ public class PlayerController : MonoBehaviour
     private Vector3Int initialPosition;
     private Tilemap playerLayer;
     private Tilemap map;
-    private Tile playerTile;
+    public Tile playerTile;
+    private Tilemap enemyLayer;
+    private Tile enemyTile;
 
+    public GameObject attackPanel;
     public TextMeshProUGUI healthText;
+    public TextMeshProUGUI manaText;
     public HealthBar healthBar;
-    HealthSystem healthSystem = new HealthSystem();
+    public ManaBar manaBar;
+    public HealthSystem healthSystem = new HealthSystem();
+    public HealthSystem manaSystem = new HealthSystem();
 
-    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap map)
+    EnemyController enemyController;
+
+    private void Start()
+    {
+        enemyController = enemyLayer.GetComponent<EnemyController>();
+    }
+
+    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, Tile enemyTile, Tilemap map)
     {
         this.playerLayer = playerLayer;
         this.playerTile = playerTile;
+        this.enemyLayer = enemyLayer;
+        this.enemyTile = enemyTile;
         this.map = map;
 
         // Assign player's initial position
@@ -39,7 +55,14 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("PlayerController is not properly initialized.");
             return;
         }
-        HandleInput();
+        if (GameManager.instance.isPlayersTurn)
+        {
+            HandleInput();
+        }
+        else
+        {
+            return;
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -93,6 +116,7 @@ public class PlayerController : MonoBehaviour
             playerLayer.SetTile(currentPosition, null);
             currentPosition = newPosition;
             playerLayer.SetTile(currentPosition, playerTile);
+            GameManager.instance.EndPlayerTurn();
         }
     }
 
@@ -109,6 +133,7 @@ public class PlayerController : MonoBehaviour
         // Get tile as position on the map.
         TileBase mapTile = map.GetTile(position);
         TileBase playerLayerTile = playerLayer.GetTile(position);
+        TileBase enemyLayerTile = enemyLayer.GetTile(position);
 
         // Check if the position is empty on both layers.
         if (mapTile == null && playerLayerTile == null)
@@ -131,12 +156,47 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
+        if (enemyLayerTile == enemyController.enemyTile)
+        {
+            attackPanel.SetActive(true);
+            Time.timeScale = 0;
+            return false;
+        }
         // If no conditions are met, player can move.
         return true;
     }
 
-    private void UpdateHealthText()
+    public void AttackEnemy(string buttonName)
+    {
+        switch (buttonName)
+        {
+            case "SwordAttack":
+                enemyController.healthSystem.TakeDamage(20);
+                enemyController.UpdateHealthText();
+                break;
+            case "SpellAttack":
+                enemyController.healthSystem.TakeDamage(40);
+                manaSystem.TakeDamage(20);
+                float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
+                manaBar.SetManaBar(manaPercentage);
+                UpdateManaText();
+                enemyController.UpdateHealthText();
+                break;
+        }
+        attackPanel.SetActive(false);
+        Time.timeScale = 1;
+        GameManager.instance.EndPlayerTurn();
+        GameManager.instance.StartEnemyTurn();
+        
+    }
+
+    public void UpdateHealthText()
     {
         healthText.text = "HP: " + healthSystem.health.ToString();
+    }
+
+    public void UpdateManaText()
+    {
+        manaText.text = "MP: " + manaSystem.health.ToString();
     }
 }
