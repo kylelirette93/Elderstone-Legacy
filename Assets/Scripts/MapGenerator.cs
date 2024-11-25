@@ -7,6 +7,7 @@ public class MapGenerator : MonoBehaviour
     public Tilemap playerLayer;
     public Tilemap enemyLayer;
     public Tile borderTile, groundTile, chestTile, playerTile, enemyTile;
+    public AnimatedTile spellHitTile, swordAttackTile;
     public Tile[] houseTiles;
 
     private int chestsToPlace;
@@ -33,7 +34,7 @@ public class MapGenerator : MonoBehaviour
         playerController = 
             GameObject.FindGameObjectWithTag
             (playerTag).GetComponent<PlayerController>();
-        playerController.Initialize(playerLayer, playerTile, enemyLayer, enemyTile, map);
+        playerController.Initialize(playerLayer, playerTile, enemyLayer, enemyTile, spellHitTile, swordAttackTile, map);
 
         // Get player's initial position.
         Vector3Int playerPosition = playerController.GetInitialPosition();

@@ -580,7 +580,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: SwordAttack
+          m_StringArgument: SwingSword
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &503011653
@@ -1487,6 +1487,8 @@ MonoBehaviour:
   chestTile: {fileID: 11400000, guid: 03371dea8f8e58c409d62f5174d19a10, type: 2}
   playerTile: {fileID: 11400000, guid: e5a3c933102d55c4da9268b24924e6ec, type: 2}
   enemyTile: {fileID: 11400000, guid: 976f7b3b986357744a2929e0c45c1663, type: 2}
+  spellHitTile: {fileID: 11400000, guid: 2b27a787b7c71314593863b19d6e0f5d, type: 2}
+  swordAttackTile: {fileID: 11400000, guid: 72711f5cf942abe40aefc7c8d4d49a8f, type: 2}
   houseTiles:
   - {fileID: 11400000, guid: 3bff7e3dfa5f2824d81eab6a6e0d5e3b, type: 2}
   - {fileID: 11400000, guid: 8b49e462eded6bb40a7c6e9d4485beac, type: 2}

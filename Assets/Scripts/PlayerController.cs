@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     public Tile playerTile;
     private Tilemap enemyLayer;
     private Tile enemyTile;
+    private AnimatedTile spellHitTile;
+    private AnimatedTile swordAttackTile;
 
     public GameObject attackPanel;
     public TextMeshProUGUI healthText;
@@ -29,12 +31,14 @@ public class PlayerController : MonoBehaviour
         enemyController = enemyLayer.GetComponent<EnemyController>();
     }
 
-    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, Tile enemyTile, Tilemap map)
+    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, 
+        Tile enemyTile, AnimatedTile spellHitTile, AnimatedTile swordAttackTile, Tilemap map)
     {
         this.playerLayer = playerLayer;
         this.playerTile = playerTile;
         this.enemyLayer = enemyLayer;
         this.enemyTile = enemyTile;
+        this.spellHitTile = spellHitTile;
         this.map = map;
 
         // Assign player's initial position
@@ -170,11 +174,13 @@ public class PlayerController : MonoBehaviour
     {
         switch (buttonName)
         {
-            case "SwordAttack":
+            case "SwingSword":
+                SwordHit();
                 enemyController.healthSystem.TakeDamage(20);
                 enemyController.UpdateHealthText();
                 break;
             case "SpellAttack":
+                SpellHit();
                 enemyController.healthSystem.TakeDamage(40);
                 manaSystem.TakeDamage(20);
                 float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
@@ -186,8 +192,45 @@ public class PlayerController : MonoBehaviour
         attackPanel.SetActive(false);
         Time.timeScale = 1;
         GameManager.instance.EndPlayerTurn();
-        GameManager.instance.StartEnemyTurn();
-        
+        GameManager.instance.StartEnemyTurn();      
+    }
+
+    public void SwordHit()
+    {
+        Vector3Int enemyPosition = enemyController.GetEnemyPosition();
+        AnimatedTile modifiedSwordAttackTile = ScriptableObject.CreateInstance<AnimatedTile>();
+        Debug.Log("Created scriptable object.");
+        modifiedSwordAttackTile.m_AnimatedSprites = swordAttackTile.m_AnimatedSprites;
+        modifiedSwordAttackTile.m_AnimationStartFrame = swordAttackTile.m_AnimationStartFrame;
+        modifiedSwordAttackTile.m_MinSpeed = 4f;
+        modifiedSwordAttackTile.m_MaxSpeed = 4f;
+        float endTime =
+            modifiedSwordAttackTile.m_AnimatedSprites.Length / modifiedSwordAttackTile.m_MaxSpeed;
+        enemyLayer.SetTile(enemyPosition, modifiedSwordAttackTile);
+
+        StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSwordAttackTile, endTime));
+    }
+
+    public void SpellHit()
+    {
+        Vector3Int enemyPosition = enemyController.GetEnemyPosition();
+        AnimatedTile modifiedSpellHitTile = ScriptableObject.CreateInstance<AnimatedTile>();
+        modifiedSpellHitTile.m_AnimatedSprites = spellHitTile.m_AnimatedSprites;
+        modifiedSpellHitTile.m_AnimationStartFrame = spellHitTile.m_AnimationStartFrame;
+        modifiedSpellHitTile.m_MinSpeed = 4f;
+        modifiedSpellHitTile.m_MaxSpeed = 4f;
+        modifiedSpellHitTile.m_AnimationStartTime = Time.time;
+        float endTime = 
+            modifiedSpellHitTile.m_AnimatedSprites.Length / modifiedSpellHitTile.m_MaxSpeed;
+        enemyLayer.SetTile(enemyPosition, modifiedSpellHitTile);
+
+        StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSpellHitTile, endTime));
+    }
+
+    IEnumerator ClearTileAfterAnimation(Vector3Int position, AnimatedTile tile, float endTime)
+    {
+        yield return new WaitForSeconds(endTime);
+        enemyLayer.SetTile(position, enemyTile);
     }
 
     public void UpdateHealthText()

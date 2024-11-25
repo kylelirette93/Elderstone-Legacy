@@ -117,6 +117,11 @@ public class EnemyController : MonoBehaviour
         return Vector3Int.zero;
     }
 
+    public Vector3Int GetEnemyPosition()
+    {
+        return currentPosition;
+    }
+
     private Vector3Int GetDirectionToPlayer(Vector3Int enemyPosition, Vector3Int playerPosition)
     {
         Vector3Int direction = playerPosition - enemyPosition;
