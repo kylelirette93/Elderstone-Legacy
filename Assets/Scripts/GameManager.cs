@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     public bool isPlayersTurn = true;
-    public int playerTurnCount = 0;
     public bool isEnemiesTurn = false;
     private void Awake()
     {
@@ -24,13 +23,9 @@ public class GameManager : MonoBehaviour
     public void EndPlayerTurn()
     {
         // The enemy gets 1 turn for every 2 turns the player gets.
-        playerTurnCount++;
-        if (playerTurnCount == 2)
-        {
+        
             isPlayersTurn = false;
             isEnemiesTurn = true;
-            playerTurnCount = 0;
-        }
     }
 
     public void StartEnemyTurn()

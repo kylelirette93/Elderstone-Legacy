@@ -6,16 +6,16 @@ public class MapGenerator : MonoBehaviour
     public Tilemap map;
     public Tilemap playerLayer;
     public Tilemap enemyLayer;
-    public Tile borderTile, groundTile, chestTile, playerTile, enemyTile;
+    public Tile borderTile, groundTile, manaTile, playerTile, enemyTile;
     public AnimatedTile spellHitTile, swordAttackTile;
     public Tile[] houseTiles;
 
-    private int chestsToPlace;
+    private int potionsToPlace;
     private int housesToPlace;
-    private const int maxChests = 4;
+    private const int maxPotions = 4;
     private const int maxHouses = 4;
 
-    private string[] mapPaths = { "level01.txt" };
+    private string[] mapPaths = { "level01.txt", "level02.txt" };
 
     PlayerController playerController;
     string playerTag = "Player";
@@ -25,7 +25,7 @@ public class MapGenerator : MonoBehaviour
     private void Awake()
     {
         // Random number of chest and houses to place.
-        chestsToPlace = Random.Range(1, maxChests);
+        potionsToPlace = Random.Range(1, maxPotions);
         housesToPlace = Random.Range(1, maxHouses);
 
         GenerateMap();
@@ -54,10 +54,10 @@ public class MapGenerator : MonoBehaviour
         char[,] map = new char[width, height];
         char wall = '#';
         char houseTile = '@';
-        char chestTile = '$';
+        char manaTile = '$';
         char groundTile = '_';
 
-        int chestsPlaced = 0;
+        int potionsPlaced = 0;
         int housesPlaced = 0;
 
         // These variables are used to determine the chance of placing a house.
@@ -79,10 +79,10 @@ public class MapGenerator : MonoBehaviour
                 else if ((x == 1 && y == 1) || (x == width - 2 && y == 1) ||
                          (x == 1 && y == height - 2) || (x == width - 2 && y == height - 2))
                 {
-                    if (chestsPlaced < chestsToPlace)
+                    if (potionsPlaced < potionsToPlace)
                     {
-                        map[x, y] = chestTile;
-                        chestsPlaced++;
+                        map[x, y] = manaTile;
+                        potionsPlaced++;
                     }
                 }
                 // Creates a box inside the map where houses can be placed.
@@ -119,14 +119,12 @@ public class MapGenerator : MonoBehaviour
 
     public void GenerateMap()
     {
-        
-
         // Select a random map from the list of map paths.
         string randomMapPath = mapPaths[Random.Range(0, mapPaths.Length)];
 
         // Load and convert the map data to a tilemap.
         string mapData = MapLoader.LoadPremadeMap(randomMapPath);
         TilemapConverter.ConvertMapToTilemap(mapData, map, playerLayer, borderTile, groundTile,
-            chestTile, houseTiles, playerTile);
+            manaTile, houseTiles, playerTile);
     }
 }

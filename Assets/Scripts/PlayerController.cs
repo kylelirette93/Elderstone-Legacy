@@ -3,6 +3,8 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using TMPro;
 using System.Collections;
+using Unity.VisualScripting;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -16,15 +18,18 @@ public class PlayerController : MonoBehaviour
     private AnimatedTile spellHitTile;
     private AnimatedTile swordAttackTile;
 
+    bool isAttacking = false;
     public GameObject attackPanel;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI manaText;
     public HealthBar healthBar;
+    public HealthBar enemyHealthBar;
     public ManaBar manaBar;
     public HealthSystem healthSystem = new HealthSystem();
     public HealthSystem manaSystem = new HealthSystem();
 
     EnemyController enemyController;
+    Vector3Int enemyPosition;
 
     private void Start()
     {
@@ -39,6 +44,7 @@ public class PlayerController : MonoBehaviour
         this.enemyLayer = enemyLayer;
         this.enemyTile = enemyTile;
         this.spellHitTile = spellHitTile;
+        this.swordAttackTile = swordAttackTile;
         this.map = map;
 
         // Assign player's initial position
@@ -59,21 +65,13 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("PlayerController is not properly initialized.");
             return;
         }
-        if (GameManager.instance.isPlayersTurn)
+        if (GameManager.instance.isPlayersTurn && !isAttacking)
         {
             HandleInput();
         }
         else
         {
             return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            healthSystem.TakeDamage(10);
-            float healthPercentage = (float)healthSystem.health / healthSystem.maxHealth;
-            healthBar.SetHealthBar(healthPercentage);
-            UpdateHealthText();
         }
     }
 
@@ -82,6 +80,10 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
+        if (isAttacking)
+        {
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             MovePlayer(new Vector3Int(0, 1, 0));
@@ -140,7 +142,7 @@ public class PlayerController : MonoBehaviour
         TileBase enemyLayerTile = enemyLayer.GetTile(position);
 
         // Check if the position is empty on both layers.
-        if (mapTile == null && playerLayerTile == null)
+        if (mapTile == null && playerLayerTile == null && !isAttacking)
         {
             // If position is empty player can move.
             return true;
@@ -152,8 +154,12 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
-        if (mapTile == map.GetComponent<MapGenerator>().chestTile)
-        {
+        if (mapTile == map.GetComponent<MapGenerator>().manaTile)
+        { 
+            IncrementMana();
+            // Remove the mana potion and set as ground.
+            TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
+            map.SetTile(position, groundTile);
             return false;
         }
         if (mapTile.name == "HouseTile")
@@ -162,6 +168,7 @@ public class PlayerController : MonoBehaviour
         }
         if (enemyLayerTile == enemyController.enemyTile)
         {
+            isAttacking = true;
             attackPanel.SetActive(true);
             Time.timeScale = 0;
             return false;
@@ -170,50 +177,76 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    
     public void AttackEnemy(string buttonName)
     {
+        // Check for button press.
         switch (buttonName)
         {
             case "SwingSword":
                 SwordHit();
-                enemyController.healthSystem.TakeDamage(20);
-                enemyController.UpdateHealthText();
+                ApplyEnemyDamage();
                 break;
             case "SpellAttack":
                 SpellHit();
-                enemyController.healthSystem.TakeDamage(40);
-                manaSystem.TakeDamage(20);
-                float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
-                manaBar.SetManaBar(manaPercentage);
-                UpdateManaText();
+                ApplyEnemyDamage();
+                DecrementMana();
                 enemyController.UpdateHealthText();
                 break;
         }
+        // Disable the panel after attacking, reset time scale and end the player's turn.
         attackPanel.SetActive(false);
         Time.timeScale = 1;
         GameManager.instance.EndPlayerTurn();
-        GameManager.instance.StartEnemyTurn();      
+        GameManager.instance.StartEnemyTurn();
+        isAttacking = false;
+    }
+
+    void ApplyEnemyDamage()
+    {
+        enemyController.healthSystem.TakeDamage(20);
+        float healthPercentage = (float)enemyController.healthSystem.health / enemyController.healthSystem.maxHealth;
+        enemyHealthBar.SetHealthBar(healthPercentage);
+        enemyController.UpdateHealthText();
+    }
+
+    void IncrementMana()
+    {
+        manaSystem.Heal(20);
+        float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
+        manaBar.SetManaBar(manaPercentage);
+        UpdateManaText();
+    }
+
+    void DecrementMana()
+    {
+        manaSystem.TakeDamage(20);
+        float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
+        manaBar.SetManaBar(manaPercentage);
+        UpdateManaText();
     }
 
     public void SwordHit()
     {
-        Vector3Int enemyPosition = enemyController.GetEnemyPosition();
+        enemyPosition = enemyController.GetEnemyPosition();
         AnimatedTile modifiedSwordAttackTile = ScriptableObject.CreateInstance<AnimatedTile>();
         Debug.Log("Created scriptable object.");
         modifiedSwordAttackTile.m_AnimatedSprites = swordAttackTile.m_AnimatedSprites;
         modifiedSwordAttackTile.m_AnimationStartFrame = swordAttackTile.m_AnimationStartFrame;
-        modifiedSwordAttackTile.m_MinSpeed = 4f;
-        modifiedSwordAttackTile.m_MaxSpeed = 4f;
+        modifiedSwordAttackTile.m_MinSpeed = 8f;
+        modifiedSwordAttackTile.m_MaxSpeed = 8f;
         float endTime =
             modifiedSwordAttackTile.m_AnimatedSprites.Length / modifiedSwordAttackTile.m_MaxSpeed;
         enemyLayer.SetTile(enemyPosition, modifiedSwordAttackTile);
+
+        
 
         StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSwordAttackTile, endTime));
     }
 
     public void SpellHit()
     {
-        Vector3Int enemyPosition = enemyController.GetEnemyPosition();
+        enemyPosition = enemyController.GetEnemyPosition();
         AnimatedTile modifiedSpellHitTile = ScriptableObject.CreateInstance<AnimatedTile>();
         modifiedSpellHitTile.m_AnimatedSprites = spellHitTile.m_AnimatedSprites;
         modifiedSpellHitTile.m_AnimationStartFrame = spellHitTile.m_AnimationStartFrame;
@@ -230,7 +263,18 @@ public class PlayerController : MonoBehaviour
     IEnumerator ClearTileAfterAnimation(Vector3Int position, AnimatedTile tile, float endTime)
     {
         yield return new WaitForSeconds(endTime);
-        enemyLayer.SetTile(position, enemyTile);
+
+        int lastCheckedEnemyHealth = enemyController.healthSystem.health;
+        if (lastCheckedEnemyHealth <= 0)
+        {
+            enemyController.isDead = true;
+            TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
+            enemyLayer.SetTile(position, groundTile);
+        }
+        else
+        {
+            enemyLayer.SetTile(position, enemyTile);
+        }
     }
 
     public void UpdateHealthText()

@@ -11,6 +11,7 @@ public class EnemyController : MonoBehaviour
     private Tilemap playerLayer;
     private Tilemap map;
     public Tile enemyTile;
+    public bool isDead = false;
     private Tile playerTile;
 
     public TextMeshProUGUI healthText;
@@ -62,7 +63,7 @@ public class EnemyController : MonoBehaviour
                 // Check if the position is empty on the playerLayer and not a special tile on the map
                 if (playerLayer.GetTile(position) == null &&
                     map.GetTile(position) != map.GetComponent<MapGenerator>().borderTile &&
-                    map.GetTile(position) != map.GetComponent<MapGenerator>().chestTile &&
+                    map.GetTile(position) != map.GetComponent<MapGenerator>().manaTile &&
                     map.GetTile(position).name != "HouseTile")
                 {
                     if (Vector3Int.Distance(position, playerPosition) >= minDistance)
@@ -77,31 +78,29 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        if (enemyLayer == null || map == null || enemyTile == null)
+        if (!isDead)
         {
-            Debug.LogError("Enemy controller is not properly initialized.");
-            return;
-        }
-
-        if (GameManager.instance.isEnemiesTurn)
-        {
-            moveTimer += Time.deltaTime;
-
-            if (moveTimer >= moveInterval)
+            if (enemyLayer == null || map == null || enemyTile == null)
             {
-                Vector3Int playerPosition = GetPlayerPosition();
-                Vector3Int directionToPlayer = GetDirectionToPlayer(currentPosition, playerPosition);
-
-                MoveEnemy(directionToPlayer);
-                moveTimer = 0.0f;
-
-                GameManager.instance.EndEnemiesTurn();
+                Debug.LogError("Enemy controller is not properly initialized.");
+                return;
             }
-        }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            healthSystem.TakeDamage(10);
+            if (GameManager.instance.isEnemiesTurn)
+            {
+                moveTimer += Time.deltaTime;
+
+                if (moveTimer >= moveInterval)
+                {
+                    Vector3Int playerPosition = GetPlayerPosition();
+                    Vector3Int directionToPlayer = GetDirectionToPlayer(currentPosition, playerPosition);
+
+                    MoveEnemy(directionToPlayer);
+                    moveTimer = 0.0f;
+
+                    GameManager.instance.EndEnemiesTurn();
+                }
+            }
         }
     }
 
@@ -174,7 +173,7 @@ public class EnemyController : MonoBehaviour
         {
             return false;
         }
-        if (mapTile == map.GetComponent<MapGenerator>().chestTile)
+        if (mapTile == map.GetComponent<MapGenerator>().manaTile)
         {
             return false;
         }
