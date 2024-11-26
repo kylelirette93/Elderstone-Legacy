@@ -6,7 +6,7 @@ public class MapGenerator : MonoBehaviour
     public Tilemap map;
     public Tilemap playerLayer;
     public Tilemap enemyLayer;
-    public Tile borderTile, groundTile, manaTile, playerTile, enemyTile;
+    public Tile borderTile, groundTile, manaTile, healthTile, playerTile, enemyTile;
     public AnimatedTile spellHitTile, swordAttackTile;
     public Tile[] houseTiles;
 
@@ -54,7 +54,8 @@ public class MapGenerator : MonoBehaviour
         char[,] map = new char[width, height];
         char wall = '#';
         char houseTile = '@';
-        char manaTile = '$';
+        char manaTile = 'M';
+        char healthTile = 'H';
         char groundTile = '_';
 
         int potionsPlaced = 0;
@@ -125,6 +126,6 @@ public class MapGenerator : MonoBehaviour
         // Load and convert the map data to a tilemap.
         string mapData = MapLoader.LoadPremadeMap(randomMapPath);
         TilemapConverter.ConvertMapToTilemap(mapData, map, playerLayer, borderTile, groundTile,
-            manaTile, houseTiles, playerTile);
+            manaTile, healthTile, houseTiles, playerTile);
     }
 }

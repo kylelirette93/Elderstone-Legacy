@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using TMPro;
+using UnityEngine.Tilemaps;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,6 +11,10 @@ public class GameManager : MonoBehaviour
 
     public bool isPlayersTurn = true;
     public bool isEnemiesTurn = false;
+    private List<EnemyController> activeEnemies = new List<EnemyController>();
+
+    Tilemap enemyLayer;
+
     private void Awake()
     {
         if (instance == null)
@@ -20,17 +27,53 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void EndPlayerTurn()
+    public void RegisterEnemy(EnemyController enemy)
     {
-        // The enemy gets 1 turn for every 2 turns the player gets.
-        
-            isPlayersTurn = false;
-            isEnemiesTurn = true;
+        if (!activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Add(enemy);
+        }
+    }
+
+    public void DeregisterEnemy(EnemyController enemy)
+    {
+        if (activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Remove(enemy);
+        }
+    }
+
+    public bool AreEnemiesRemaining()
+    {
+        return activeEnemies.Any(enemy => !enemy.isDead);
+    }
+
+    public void OnEnemyDeath(EnemyController enemyController)
+    {
+        DeregisterEnemy(enemyController);
+
+        if (!AreEnemiesRemaining())
+        {
+            isPlayersTurn = true;
+        }
+    }
+
+    public void EndPlayerTurn()
+    {       
+        isPlayersTurn = false;
+        isEnemiesTurn = true;
     }
 
     public void StartEnemyTurn()
     {
-        isEnemiesTurn = true;
+        if (AreEnemiesRemaining()) 
+        {
+            isPlayersTurn = false; 
+        }
+        else
+        {
+            isPlayersTurn = true;
+        }
     }
 
     public void EndEnemiesTurn()
@@ -38,4 +81,6 @@ public class GameManager : MonoBehaviour
         isEnemiesTurn = false;
         isPlayersTurn = true;
     }
+
+    
 }

@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 public class TilemapConverter
 {
     public static void ConvertMapToTilemap(string mapData, Tilemap map, Tilemap playerLayer, Tile borderTile, Tile groundTile, 
-        Tile manaTile, Tile[] houseTiles, Tile playerTile)
+        Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile playerTile)
     {
         // Create an array of rows, split the string at each new line.
         string[] rows = mapData.Split('\n');
@@ -28,8 +28,11 @@ public class TilemapConverter
                     case '_':
                         map.SetTile(tilePosition, groundTile);
                         break;
-                    case '$':
+                    case 'M':
                         map.SetTile(tilePosition, manaTile);
+                        break;
+                    case 'H':
+                        map.SetTile(tilePosition, healthTile);
                         break;
                     case '@':
                         // Place a random house.

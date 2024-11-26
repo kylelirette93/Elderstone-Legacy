@@ -25,6 +25,8 @@ public class EnemyController : MonoBehaviour
     private void Start()
     {
         playerController = playerLayer.GetComponent<PlayerController>();
+        // Add enemy to list made in game manager.
+        GameManager.instance.RegisterEnemy(this);
     }
 
     public void Initialize(Tilemap enemyLayer, Tilemap playerLayer, Tile enemyTile, 
@@ -192,10 +194,27 @@ public class EnemyController : MonoBehaviour
 
     void AttackPlayer() 
     {
+        int randomValue = Random.Range(0, 100);
+        bool hasMissed = randomValue < 20;
+        int attackDamage = Random.Range(5, 10);
         if (playerController != null)
         {
-            playerController.healthSystem.TakeDamage(10);
+            if (!hasMissed)
+            {
+                playerController.healthSystem.TakeDamage(attackDamage);
+
+                // Check if enemy is dead, if so deactivate health bar.
+                if (playerController.healthSystem.health <= 0f)
+                {
+                    playerController.Die();
+                }
+            }
+            else
+            {
+                Debug.Log("Enemy missed the player.");
+            }
             playerController.UpdateHealthText();
+
         }
         else
         {
@@ -203,8 +222,10 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    
+
     public void UpdateHealthText()
     {
-        healthText.text = "HP: " + healthSystem.health.ToString();
+        healthText.text = "ENEMY HP: " + healthSystem.health.ToString();
     }
 }

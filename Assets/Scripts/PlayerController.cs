@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using TMPro;
 using System.Collections;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine.UIElements;
 
@@ -10,6 +11,10 @@ public class PlayerController : MonoBehaviour
 {
     private Vector3Int currentPosition;
     private Vector3Int initialPosition;
+    Vector3Int enemyPosition;
+    bool isEnemies;
+    bool isAttacking = false;
+
     private Tilemap playerLayer;
     private Tilemap map;
     public Tile playerTile;
@@ -17,8 +22,6 @@ public class PlayerController : MonoBehaviour
     private Tile enemyTile;
     private AnimatedTile spellHitTile;
     private AnimatedTile swordAttackTile;
-
-    bool isAttacking = false;
     public GameObject attackPanel;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI manaText;
@@ -27,13 +30,14 @@ public class PlayerController : MonoBehaviour
     public ManaBar manaBar;
     public HealthSystem healthSystem = new HealthSystem();
     public HealthSystem manaSystem = new HealthSystem();
-
     EnemyController enemyController;
-    Vector3Int enemyPosition;
+
+    public Inventory inventory;
 
     private void Start()
     {
         enemyController = enemyLayer.GetComponent<EnemyController>();
+        inventory = GetComponent<Inventory>();
     }
 
     public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, 
@@ -74,10 +78,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
     }
-
-
-
-
     private void HandleInput()
     {
         if (isAttacking)
@@ -100,6 +100,15 @@ public class PlayerController : MonoBehaviour
         {
             MovePlayer(new Vector3Int(0, -1, 0));
         }
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            UseHealthPotion();
+        }
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            UseManaPotion();
+        }
+        
     }
 
     public void ResetPlayerPosition()
@@ -122,7 +131,17 @@ public class PlayerController : MonoBehaviour
             playerLayer.SetTile(currentPosition, null);
             currentPosition = newPosition;
             playerLayer.SetTile(currentPosition, playerTile);
-            GameManager.instance.EndPlayerTurn();
+
+            isEnemies = CheckForEnemies(enemyLayer);
+
+            if (isEnemies)
+            {
+                GameManager.instance.EndPlayerTurn();
+            }
+            else
+            {
+                // Player's turn should continue if there are no enemies left.
+            }
         }
     }
 
@@ -155,9 +174,16 @@ public class PlayerController : MonoBehaviour
             return false;
         }
         if (mapTile == map.GetComponent<MapGenerator>().manaTile)
-        { 
-            IncrementMana();
-            // Remove the mana potion and set as ground.
+        {
+            inventory.AddItem("ManaPotion", 1);
+            TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
+            map.SetTile(position, groundTile);
+            return false;
+        }
+
+        if (mapTile == map.GetComponent<MapGenerator>().healthTile)
+        {
+            inventory.AddItem("HealthPotion", 1);
             TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
             map.SetTile(position, groundTile);
             return false;
@@ -185,11 +211,13 @@ public class PlayerController : MonoBehaviour
         {
             case "SwingSword":
                 SwordHit();
-                ApplyEnemyDamage();
+                int swordDamage = 20;
+                ApplyEnemyDamage(swordDamage);
                 break;
             case "SpellAttack":
                 SpellHit();
-                ApplyEnemyDamage();
+                int spellDamage = 30;
+                ApplyEnemyDamage(spellDamage);
                 DecrementMana();
                 enemyController.UpdateHealthText();
                 break;
@@ -197,57 +225,118 @@ public class PlayerController : MonoBehaviour
         // Disable the panel after attacking, reset time scale and end the player's turn.
         attackPanel.SetActive(false);
         Time.timeScale = 1;
-        GameManager.instance.EndPlayerTurn();
-        GameManager.instance.StartEnemyTurn();
         isAttacking = false;
+
+        
+        if (GameManager.instance.AreEnemiesRemaining())
+        {
+            GameManager.instance.EndPlayerTurn();
+            GameManager.instance.StartEnemyTurn();
+        }
+        else
+        {
+            GameManager.instance.EndEnemiesTurn();
+        }
     }
 
-    void ApplyEnemyDamage()
+    bool CheckForEnemies(Tilemap enemyLayer)
     {
-        enemyController.healthSystem.TakeDamage(20);
+        return GameManager.instance.AreEnemiesRemaining();
+    }
+
+    void ApplyEnemyDamage(int damage)
+    {
+        // Apply damage to the enemy.
+        enemyController.healthSystem.TakeDamage(damage);
+
+        // Update enemy health bar with float value for fill amount.
         float healthPercentage = (float)enemyController.healthSystem.health / enemyController.healthSystem.maxHealth;
         enemyHealthBar.SetHealthBar(healthPercentage);
+
+        // Update enemy health text.
         enemyController.UpdateHealthText();
+
+        // Check if enemy is dead, if so deactivate health bar.
+        if (enemyController.healthSystem.health <= 0f)
+        {
+            enemyController.healthBar.gameObject.SetActive(false);
+        }
     }
 
-    void IncrementMana()
+    void UseManaPotion()
     {
-        manaSystem.Heal(20);
+        inventory.RemoveItem("ManaPotion", 1);
+        // Increment mana.
+        manaSystem.Heal(30);
+
+        // Update mana bar UI image with float value for fill amount.
         float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
         manaBar.SetManaBar(manaPercentage);
+
+        // Update mana text.
         UpdateManaText();
     }
 
     void DecrementMana()
     {
+        // Decrement mana.
         manaSystem.TakeDamage(20);
+
+        // Update mana bar UI image with float value for fill amount.
         float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
         manaBar.SetManaBar(manaPercentage);
+
+        // Update mana text.
         UpdateManaText();
+    }
+
+    void UseHealthPotion()
+    {
+        inventory.RemoveItem("HealthPotion", 1);
+        // Increment health.
+        healthSystem.Heal(30);
+
+        // Update health bar UI image with float value for fill amount.
+        float healthPercentage = (float)healthSystem.health / healthSystem.maxHealth;
+        healthBar.SetHealthBar(healthPercentage);
+
+        // Update health text.
+        UpdateHealthText();
     }
 
     public void SwordHit()
     {
+        // Get the enemy's position.
         enemyPosition = enemyController.GetEnemyPosition();
+
+        // Create seperate instance of sword attack animated tile.
         AnimatedTile modifiedSwordAttackTile = ScriptableObject.CreateInstance<AnimatedTile>();
         Debug.Log("Created scriptable object.");
+
+        // Modify the sword attack animation.
         modifiedSwordAttackTile.m_AnimatedSprites = swordAttackTile.m_AnimatedSprites;
         modifiedSwordAttackTile.m_AnimationStartFrame = swordAttackTile.m_AnimationStartFrame;
         modifiedSwordAttackTile.m_MinSpeed = 8f;
         modifiedSwordAttackTile.m_MaxSpeed = 8f;
         float endTime =
             modifiedSwordAttackTile.m_AnimatedSprites.Length / modifiedSwordAttackTile.m_MaxSpeed;
+
+        // Set the animated tile to the enemy's position.
         enemyLayer.SetTile(enemyPosition, modifiedSwordAttackTile);
 
-        
-
+        // Start the coroutine to replace or clear tile after animation ends.
         StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSwordAttackTile, endTime));
     }
 
     public void SpellHit()
     {
+        // Get the enemy's position.
         enemyPosition = enemyController.GetEnemyPosition();
+
+        // Create seperate instance of spell hit animated tile.
         AnimatedTile modifiedSpellHitTile = ScriptableObject.CreateInstance<AnimatedTile>();
+
+        // Modify the spell hit animation.
         modifiedSpellHitTile.m_AnimatedSprites = spellHitTile.m_AnimatedSprites;
         modifiedSpellHitTile.m_AnimationStartFrame = spellHitTile.m_AnimationStartFrame;
         modifiedSpellHitTile.m_MinSpeed = 4f;
@@ -255,26 +344,41 @@ public class PlayerController : MonoBehaviour
         modifiedSpellHitTile.m_AnimationStartTime = Time.time;
         float endTime = 
             modifiedSpellHitTile.m_AnimatedSprites.Length / modifiedSpellHitTile.m_MaxSpeed;
+
+        // Set the animated tile to the enemy's position.
         enemyLayer.SetTile(enemyPosition, modifiedSpellHitTile);
 
+        // Start the coroutine to replace or clear tile after animation ends.
         StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSpellHitTile, endTime));
     }
 
     IEnumerator ClearTileAfterAnimation(Vector3Int position, AnimatedTile tile, float endTime)
     {
+        // Wait until animation ends.
         yield return new WaitForSeconds(endTime);
 
+        // Check if enemy is dead.
         int lastCheckedEnemyHealth = enemyController.healthSystem.health;
         if (lastCheckedEnemyHealth <= 0)
         {
+            // Update enemy controller and replace enemy with ground tile.
             enemyController.isDead = true;
             TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
             enemyLayer.SetTile(position, groundTile);
+            // Update game manager to remove remaining enemy from list.
+            GameManager.instance.OnEnemyDeath(enemyController);
         }
         else
         {
+            // If enemy isn't dead, reset tile to enemy tile.
             enemyLayer.SetTile(position, enemyTile);
         }
+    }
+
+    public void Die()
+    {
+       healthBar.gameObject.SetActive(false);
+       
     }
 
     public void UpdateHealthText()
