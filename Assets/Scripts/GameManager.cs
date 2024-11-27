@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
     public bool isPlayersTurn = true;
     public bool isEnemiesTurn = false;
     private List<EnemyController> activeEnemies = new List<EnemyController>();
+    MapGenerator mapGenerator;
+    string mapGeneratorTag = "MapGenerator";
 
     Tilemap enemyLayer;
 
@@ -25,6 +27,11 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Start()
+    {
+        mapGenerator = GameObject.FindWithTag(mapGeneratorTag).GetComponent<MapGenerator>();
     }
 
     public void RegisterEnemy(EnemyController enemy)
@@ -81,6 +88,19 @@ public class GameManager : MonoBehaviour
         isEnemiesTurn = false;
         isPlayersTurn = true;
     }
+
+    public void LoadNextLevel(ref Tilemap map, ref Tilemap playerLayer, ref Tilemap enemyLayer)
+    {
+        // Clear all existing tilemaps.
+        map.ClearAllTiles();
+        playerLayer.ClearAllTiles();
+        enemyLayer.ClearAllTiles();
+
+        // Generate another map.
+        mapGenerator.GenerateMap();
+    }
+
+
 
     
 }

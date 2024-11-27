@@ -16,6 +16,7 @@ public class MapLoader
 
             // Read all characters from map and return as a single string.
             string content = streamReader.ReadToEnd();
+            Debug.Log("Original Content" + content);
             Debug.Log(content);
 
             // Close the stream after reading the file.

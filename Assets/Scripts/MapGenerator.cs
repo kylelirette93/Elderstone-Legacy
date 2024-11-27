@@ -6,7 +6,7 @@ public class MapGenerator : MonoBehaviour
     public Tilemap map;
     public Tilemap playerLayer;
     public Tilemap enemyLayer;
-    public Tile borderTile, groundTile, manaTile, healthTile, playerTile, enemyTile;
+    public Tile borderTile, groundTile, doorTile, manaTile, healthTile, playerTile, enemyTile, openDoorTile;
     public AnimatedTile spellHitTile, swordAttackTile;
     public Tile[] houseTiles;
 
@@ -31,7 +31,7 @@ public class MapGenerator : MonoBehaviour
         GenerateMap();
 
         // Spawn player.
-        playerController = 
+        playerController =
             GameObject.FindGameObjectWithTag
             (playerTag).GetComponent<PlayerController>();
         playerController.Initialize(playerLayer, playerTile, enemyLayer, enemyTile, spellHitTile, swordAttackTile, map);
@@ -44,7 +44,7 @@ public class MapGenerator : MonoBehaviour
         enemyController =
             GameObject.FindGameObjectWithTag
             (enemyTag).GetComponent<EnemyController>();
-        enemyController.Initialize(enemyLayer, playerLayer, 
+        enemyController.Initialize(enemyLayer, playerLayer,
             enemyTile, playerTile, map, playerPosition, minDistance);
     }
 
@@ -86,6 +86,9 @@ public class MapGenerator : MonoBehaviour
                         potionsPlaced++;
                     }
                 }
+               
+
+                
                 // Creates a box inside the map where houses can be placed.
                 else if ((y > 3 && y < height - 3) && (x > 3 && x < width - 3))
                 {
@@ -125,7 +128,10 @@ public class MapGenerator : MonoBehaviour
 
         // Load and convert the map data to a tilemap.
         string mapData = MapLoader.LoadPremadeMap(randomMapPath);
-        TilemapConverter.ConvertMapToTilemap(mapData, map, playerLayer, borderTile, groundTile,
+        Debug.Log(mapData);
+        TilemapConverter.ConvertMapToTilemap(mapData, map, playerLayer, borderTile, groundTile, doorTile,
             manaTile, healthTile, houseTiles, playerTile);
     }
+
+    
 }

@@ -3,13 +3,13 @@ using UnityEngine.Tilemaps;
 
 public class TilemapConverter
 {
-    public static void ConvertMapToTilemap(string mapData, Tilemap map, Tilemap playerLayer, Tile borderTile, Tile groundTile, 
-        Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile playerTile)
+    public static void ConvertMapToTilemap(string mapData, Tilemap map, Tilemap playerLayer, Tile borderTile, Tile groundTile, Tile doorTile,
+    Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile playerTile)
     {
         // Create an array of rows, split the string at each new line.
         string[] rows = mapData.Split('\n');
 
-        // Offset to determine position of map in unity.
+        // Offset to determine position of map in Unity.
         Vector3Int offset = new Vector3Int(-10, -7, 0);
 
         // Iterate through each character.
@@ -18,7 +18,9 @@ public class TilemapConverter
             for (int x = 0; x < rows[y].Length; x++)
             {
                 // Apply offset to position of each character. 
-                Vector3Int tilePosition = new Vector3Int(x, y, 0) + offset;
+                // Reverse the y-axis to match Unity's tilemap system.
+                Vector3Int tilePosition = new Vector3Int(x, rows.Length - y - 1, 0) + offset;  // Reverse y here.
+
                 switch (rows[y][x])
                 {
                     // Set tiles where the characters are in text map.
@@ -27,6 +29,9 @@ public class TilemapConverter
                         break;
                     case '_':
                         map.SetTile(tilePosition, groundTile);
+                        break;
+                    case 'D':
+                        map.SetTile(tilePosition, doorTile);
                         break;
                     case 'M':
                         map.SetTile(tilePosition, manaTile);

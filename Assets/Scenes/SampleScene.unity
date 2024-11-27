@@ -394,7 +394,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 251, y: 7.8}
+  m_AnchoredPosition: {x: 250, y: 10}
   m_SizeDelta: {x: 48, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &278960784
@@ -481,7 +481,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1
 --- !u!222 &278960786
 CanvasRenderer:
@@ -505,7 +505,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_EffectColor: {r: 0.023529414, g: 0.38431376, b: 0, a: 1}
   m_EffectDistance: {x: 2, y: -2}
-  m_UseGraphicAlpha: 1
+  m_UseGraphicAlpha: 0
 --- !u!1 &384042706
 GameObject:
   m_ObjectHideFlags: 0
@@ -617,7 +617,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 128.6, y: 75}
+  m_AnchoredPosition: {x: 130, y: 75}
   m_SizeDelta: {x: 48, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &503011652
@@ -704,7 +704,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1
 --- !u!222 &503011654
 CanvasRenderer:
@@ -728,7 +728,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_EffectColor: {r: 0.13725491, g: 0.38431376, b: 0, a: 1}
   m_EffectDistance: {x: 2, y: -2}
-  m_UseGraphicAlpha: 1
+  m_UseGraphicAlpha: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1815,7 +1815,7 @@ GameObject:
   - component: {fileID: 1613558167}
   m_Layer: 0
   m_Name: map
-  m_TagString: Untagged
+  m_TagString: MapGenerator
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1939,6 +1939,7 @@ MonoBehaviour:
   enemyLayer: {fileID: 1012588200}
   borderTile: {fileID: 11400000, guid: 7fc6acd533502014eaa0d800be35496e, type: 2}
   groundTile: {fileID: 11400000, guid: f19e60daf59c69e4bbc5359e012d2c3b, type: 2}
+  doorTile: {fileID: 11400000, guid: ad45e058581480a48b41278943eb088f, type: 2}
   manaTile: {fileID: 11400000, guid: 1d44449adad983d4c9be1ea25ef2f923, type: 2}
   healthTile: {fileID: 11400000, guid: d933238336510b84eac3454731ea9fb6, type: 2}
   playerTile: {fileID: 11400000, guid: e5a3c933102d55c4da9268b24924e6ec, type: 2}
@@ -2473,7 +2474,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85362b2bb26b774ca3445e46c4a6e05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerLayer: {fileID: 0}
+  map: {fileID: 0}
   playerTile: {fileID: 0}
+  enemyLayer: {fileID: 0}
   attackPanel: {fileID: 85663169}
   healthText: {fileID: 1701362025}
   manaText: {fileID: 1421013811}

@@ -15,10 +15,11 @@ public class PlayerController : MonoBehaviour
     bool isEnemies;
     bool isAttacking = false;
 
-    private Tilemap playerLayer;
-    private Tilemap map;
+    public Tilemap playerLayer;
+    public Tilemap map;
     public Tile playerTile;
-    private Tilemap enemyLayer;
+    public Tile openDoorTile;
+    public Tilemap enemyLayer;
     private Tile enemyTile;
     private AnimatedTile spellHitTile;
     private AnimatedTile swordAttackTile;
@@ -173,6 +174,7 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
+
         if (mapTile == map.GetComponent<MapGenerator>().manaTile)
         {
             inventory.AddItem("ManaPotion", 1);
@@ -188,10 +190,31 @@ public class PlayerController : MonoBehaviour
             map.SetTile(position, groundTile);
             return false;
         }
+
+        if (mapTile == map.GetComponent<MapGenerator>().doorTile)
+        {
+            
+            if (!GameManager.instance.AreEnemiesRemaining())
+            {
+                // Clear scene tiles and reset player. Player can move.
+                GameManager.instance.LoadNextLevel(ref map, ref playerLayer, ref enemyLayer);
+                playerLayer.SetTile(currentPosition, null);
+                playerLayer.SetTile(initialPosition, playerTile);
+                return true;
+            }
+            else
+            {
+                // Player cannot move, door is locked. 
+                return false;
+            }
+            
+        }
+
         if (mapTile.name == "HouseTile")
         {
             return false;
         }
+
         if (enemyLayerTile == enemyController.enemyTile)
         {
             isAttacking = true;
