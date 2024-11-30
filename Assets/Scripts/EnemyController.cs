@@ -2,13 +2,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Tilemaps;
 using TMPro;
+using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
     private Vector3Int currentPosition;
     private Vector3Int initialPosition;
     private Tilemap enemyLayer;
-    private Tilemap playerLayer;
+    public Tilemap playerLayer;
     private Tilemap map;
     public Tile enemyTile;
     public bool isDead = false;
@@ -21,10 +22,20 @@ public class EnemyController : MonoBehaviour
 
     private float moveInterval = 1.0f;
     private float moveTimer = 0.0f;
+    int minDistance;
 
     private void Start()
     {
-        playerController = playerLayer.GetComponent<PlayerController>();
+        if (playerLayer != null)
+        {
+            playerController = playerLayer.GetComponent<PlayerController>();
+        }
+        else
+        {
+            Debug.LogError("Player layer is not assigned.");
+            return;
+        }
+
         // Add enemy to list made in game manager.
         GameManager.instance.RegisterEnemy(this);
     }
@@ -38,23 +49,73 @@ public class EnemyController : MonoBehaviour
         this.playerTile = playerTile;
         this.map = map;
 
+        if (enemyLayer == null)
+        {
+            // Debug.LogError("Enemy layer is not assigned.");
+            return;
+        }
+        if (playerLayer == null)
+        {
+            // Debug.LogError("Player layer is not assigned.");
+            return;
+        }
+        if (enemyTile == null)
+        {
+            // Debug.LogError("Enemy tile is not assigned.");
+            return;
+        }
+        if (playerTile == null)
+        {
+            // Debug.LogError("Player tile is not assigned.");
+            return;
+        }
+        if (map == null)
+        {
+            // Debug.LogError("Map is not assigned.");
+            return;
+        }
+
         initialPosition = FindEmptyPosition(playerPosition, minDistance);
+
         if (initialPosition != Vector3Int.zero)
         {
-            Debug.Log("Found empty position at: " + initialPosition);
-            enemyLayer.SetTile(initialPosition, enemyTile);
+            // Debug.Log("Found empty position at: " + initialPosition);
             currentPosition = initialPosition;
+            enemyLayer.SetTile(initialPosition, enemyTile);
         }
         else
         {
             Debug.Log("No empty position found.");
         }
 
-        enemyLayer.SetTile(initialPosition, enemyTile);
+        
     }
+
+    public void SpawnEnemy()
+    {
+        Initialize(enemyLayer, playerLayer, enemyTile, playerTile, map, playerController.GetCurrentPosition(), minDistance);
+        GameManager.instance.RegisterEnemy(this);
+        isDead = false;
+        healthSystem.Revive();
+    }
+
 
     private Vector3Int FindEmptyPosition(Vector3Int playerPosition, int minDistance)
     {
+        List<Vector3Int> validPositions = new List<Vector3Int>();
+
+        if (map == null)
+        {
+            // Debug.LogError("Map is not assigned.");
+            return Vector3Int.zero;
+        }
+
+        if (playerLayer == null)
+        {
+            // Debug.LogError("Player layer is not assigned.");
+            return Vector3Int.zero;
+        }
+
         // Loop through the entire map dimensions (13 rows by 21 columns)
         for (int y = 0; y < 13; y++) // Loop through rows
         {
@@ -63,18 +124,46 @@ public class EnemyController : MonoBehaviour
                 Vector3Int position = new Vector3Int(x, y, 0);
 
                 // Check if the position is empty on the playerLayer and not a special tile on the map
-                if (playerLayer.GetTile(position) == null &&
-                    map.GetTile(position) != map.GetComponent<MapGenerator>().borderTile &&
-                    map.GetTile(position) != map.GetComponent<MapGenerator>().manaTile &&
-                    map.GetTile(position).name != "HouseTile")
+                TileBase mapTile = map.GetTile(position);
+                TileBase playerLayerTile = playerLayer.GetTile(position);
+
+                if (mapTile == null)
                 {
-                    if (Vector3Int.Distance(position, playerPosition) >= minDistance)
+                    // Debug.Log($"Skipping position {position} because mapTile is null.");
+                    continue;
+                }
+
+                if (playerLayerTile == null &&
+                    mapTile != map.GetComponent<MapGenerator>().borderTile &&
+                    mapTile != map.GetComponent<MapGenerator>().manaTile &&
+                    mapTile.name != "HouseTile")
+                {
+                    if (Vector3Int.Distance(position, playerPosition) >= minDistance && position != playerPosition)
                     {
-                        return position; // Return the first empty position found
+                        validPositions.Add(position);
+                        // Debug.Log($"Added valid position: {position}");
                     }
+                    else
+                    {
+                        // Debug.Log($"Position {position} is too close to the player or is the player's position.");
+                    }
+                }
+                else
+                {
+                    // Debug.Log($"Position {position} is not valid due to playerLayerTile or mapTile conditions.");
                 }
             }
         }
+
+        if (validPositions.Count > 0)
+        {
+            // Debug.Log("Selecting random position from valid positions.");
+            // Randomly select position from list of valid positions.
+            int randomIndex = Random.Range(0, validPositions.Count);
+            return validPositions[randomIndex];
+        }
+
+        // Debug.LogWarning("No valid positions found.");
         return Vector3Int.zero; // No empty position found
     }
 
@@ -87,6 +176,7 @@ public class EnemyController : MonoBehaviour
                 Debug.LogError("Enemy controller is not properly initialized.");
                 return;
             }
+
 
             if (GameManager.instance.isEnemiesTurn)
             {

@@ -3,8 +3,8 @@ using UnityEngine.Tilemaps;
 
 public class TilemapConverter
 {
-    public static void ConvertMapToTilemap(string mapData, Tilemap map, Tilemap playerLayer, Tile borderTile, Tile groundTile, Tile doorTile,
-    Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile playerTile)
+    public static void ConvertMapToTilemap(string mapData, Tilemap map, Tile borderTile, Tile groundTile, Tile doorTile,
+    Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile entryTile)
     {
         // Create an array of rows, split the string at each new line.
         string[] rows = mapData.Split('\n');
@@ -39,18 +39,19 @@ public class TilemapConverter
                     case 'H':
                         map.SetTile(tilePosition, healthTile);
                         break;
+                    case 'E':
+                        map.SetTile(tilePosition, entryTile);
+                        break;
                     case '@':
                         // Place a random house.
                         int randomHouseIndex = Random.Range(0, houseTiles.Length);
                         Tile houseTile = houseTiles[randomHouseIndex];
-
                         // Assign name of tile for collision detection.
                         houseTile.name = "HouseTile";
                         map.SetTile(tilePosition, houseTile);
                         break;
-                    case 'P':
-                        playerLayer.SetTile(tilePosition, playerTile);
-                        break;
+                    
+     
                 }
             }
         }

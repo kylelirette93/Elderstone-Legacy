@@ -1213,6 +1213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00d0c8743af9e1c48a442356f6d0c5ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerLayer: {fileID: 1815661602}
   enemyTile: {fileID: 0}
   isDead: 0
   healthText: {fileID: 1726671829}
@@ -1939,11 +1940,12 @@ MonoBehaviour:
   enemyLayer: {fileID: 1012588200}
   borderTile: {fileID: 11400000, guid: 7fc6acd533502014eaa0d800be35496e, type: 2}
   groundTile: {fileID: 11400000, guid: f19e60daf59c69e4bbc5359e012d2c3b, type: 2}
-  doorTile: {fileID: 11400000, guid: ad45e058581480a48b41278943eb088f, type: 2}
+  doorTile: {fileID: 11400000, guid: 318014bc7959a5844b7f77df0d65ef21, type: 2}
   manaTile: {fileID: 11400000, guid: 1d44449adad983d4c9be1ea25ef2f923, type: 2}
   healthTile: {fileID: 11400000, guid: d933238336510b84eac3454731ea9fb6, type: 2}
   playerTile: {fileID: 11400000, guid: e5a3c933102d55c4da9268b24924e6ec, type: 2}
   enemyTile: {fileID: 11400000, guid: 976f7b3b986357744a2929e0c45c1663, type: 2}
+  entryTile: {fileID: 11400000, guid: ad45e058581480a48b41278943eb088f, type: 2}
   spellHitTile: {fileID: 11400000, guid: 2b27a787b7c71314593863b19d6e0f5d, type: 2}
   swordAttackTile: {fileID: 11400000, guid: 72711f5cf942abe40aefc7c8d4d49a8f, type: 2}
   houseTiles:
@@ -2477,7 +2479,8 @@ MonoBehaviour:
   playerLayer: {fileID: 0}
   map: {fileID: 0}
   playerTile: {fileID: 0}
-  enemyLayer: {fileID: 0}
+  openDoorTile: {fileID: 0}
+  enemyLayer: {fileID: 1012588200}
   attackPanel: {fileID: 85663169}
   healthText: {fileID: 1701362025}
   manaText: {fileID: 1421013811}

@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController instance;
     private Vector3Int currentPosition;
     private Vector3Int initialPosition;
     Vector3Int enemyPosition;
@@ -35,6 +36,18 @@ public class PlayerController : MonoBehaviour
 
     public Inventory inventory;
 
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void Start()
     {
         enemyController = enemyLayer.GetComponent<EnemyController>();
@@ -53,14 +66,25 @@ public class PlayerController : MonoBehaviour
         this.map = map;
 
         // Assign player's initial position
-        currentPosition = new Vector3Int(0, 0, 0);
-        initialPosition = currentPosition;
 
-        playerLayer.SetTile(initialPosition, playerTile);
+        currentPosition = GameManager.instance.FindEntryTilePosition(map);
+
+        playerLayer.SetTile(currentPosition, playerTile);
     }
 
     public Vector3Int GetInitialPosition() 
-    {         return initialPosition;
+    {  
+        return initialPosition;
+    }
+
+    public Vector3Int GetCurrentPosition()
+    {
+        return currentPosition;
+    }
+
+    public void SetPlayerPosition(Vector3Int entryTilePos, Tilemap player)
+    {
+        player.SetTile(entryTilePos, playerTile);
     }
 
     private void Update()
@@ -108,8 +132,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.M))
         {
             UseManaPotion();
-        }
-        
+        }    
     }
 
     public void ResetPlayerPosition()
@@ -161,6 +184,7 @@ public class PlayerController : MonoBehaviour
         TileBase playerLayerTile = playerLayer.GetTile(position);
         TileBase enemyLayerTile = enemyLayer.GetTile(position);
 
+
         // Check if the position is empty on both layers.
         if (mapTile == null && playerLayerTile == null && !isAttacking)
         {
@@ -193,13 +217,17 @@ public class PlayerController : MonoBehaviour
 
         if (mapTile == map.GetComponent<MapGenerator>().doorTile)
         {
-            
             if (!GameManager.instance.AreEnemiesRemaining())
             {
-                // Clear scene tiles and reset player. Player can move.
-                GameManager.instance.LoadNextLevel(ref map, ref playerLayer, ref enemyLayer);
+                GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
+                Vector3Int entryTilePosition = GameManager.instance.FindEntryTilePosition(map);
                 playerLayer.SetTile(currentPosition, null);
-                playerLayer.SetTile(initialPosition, playerTile);
+                // Set to entry tile position when transitioning through the door
+                currentPosition = entryTilePosition;
+ 
+
+                Debug.Log("Player position after moving through door: " + currentPosition);
+                Debug.Log("Should be" + entryTilePosition);
                 return true;
             }
             else
@@ -207,7 +235,6 @@ public class PlayerController : MonoBehaviour
                 // Player cannot move, door is locked. 
                 return false;
             }
-            
         }
 
         if (mapTile.name == "HouseTile")
@@ -226,7 +253,9 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    
+
+
+
     public void AttackEnemy(string buttonName)
     {
         // Check for button press.
@@ -261,6 +290,8 @@ public class PlayerController : MonoBehaviour
             GameManager.instance.EndEnemiesTurn();
         }
     }
+
+    
 
     bool CheckForEnemies(Tilemap enemyLayer)
     {
@@ -390,6 +421,7 @@ public class PlayerController : MonoBehaviour
             enemyLayer.SetTile(position, groundTile);
             // Update game manager to remove remaining enemy from list.
             GameManager.instance.OnEnemyDeath(enemyController);
+            GameManager.instance.DeregisterEnemy(enemyController);
         }
         else
         {

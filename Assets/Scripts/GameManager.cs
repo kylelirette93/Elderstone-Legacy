@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     private List<EnemyController> activeEnemies = new List<EnemyController>();
     MapGenerator mapGenerator;
     string mapGeneratorTag = "MapGenerator";
+    EnemyController enemyController;
 
     Tilemap enemyLayer;
 
@@ -39,6 +40,7 @@ public class GameManager : MonoBehaviour
         if (!activeEnemies.Contains(enemy))
         {
             activeEnemies.Add(enemy);
+            enemyController = enemy;
         }
     }
 
@@ -66,16 +68,16 @@ public class GameManager : MonoBehaviour
     }
 
     public void EndPlayerTurn()
-    {       
+    {
         isPlayersTurn = false;
         isEnemiesTurn = true;
     }
 
     public void StartEnemyTurn()
     {
-        if (AreEnemiesRemaining()) 
+        if (AreEnemiesRemaining())
         {
-            isPlayersTurn = false; 
+            isPlayersTurn = false;
         }
         else
         {
@@ -89,18 +91,35 @@ public class GameManager : MonoBehaviour
         isPlayersTurn = true;
     }
 
-    public void LoadNextLevel(ref Tilemap map, ref Tilemap playerLayer, ref Tilemap enemyLayer)
+    public Vector3Int LoadNextLevel(ref Tilemap map, ref Tilemap enemyLayer)
     {
         // Clear all existing tilemaps.
         map.ClearAllTiles();
-        playerLayer.ClearAllTiles();
         enemyLayer.ClearAllTiles();
+
 
         // Generate another map.
         mapGenerator.GenerateMap();
+        enemyController.SpawnEnemy();
+        map = mapGenerator.map;
+        enemyLayer = mapGenerator.enemyLayer;
+        
+
+        Vector3Int entryTilePosition = FindEntryTilePosition(map);
+
+        // Return the entry tile position
+        return entryTilePosition;
     }
 
-
-
-    
+    public Vector3Int FindEntryTilePosition(Tilemap map)
+    {
+        foreach (var pos in map.cellBounds.allPositionsWithin)
+        {
+            if (map.GetTile(pos) == mapGenerator.entryTile)
+            {
+                return pos;
+            }
+        }
+        return Vector3Int.zero;
+    }
 }

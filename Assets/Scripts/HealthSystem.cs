@@ -7,15 +7,6 @@ public class HealthSystem
     public int health;
     public int maxHealth = 100;
     public string healthStatus;
-    private int _lives;
-    public int lives
-    {
-        get { return _lives; }
-        set
-        {
-            _lives = value;
-        }
-    }
     public int requiredXP = 100;
 
 
@@ -24,33 +15,13 @@ public class HealthSystem
     public int level = 1;
 
 
-    public string HealthStatus(int hp)
-    {
-        return hp switch
-        {
-            > 90 => "Perfect Health",
-            > 75 => "Healthy",
-            > 50 => "Hurt",
-            > 25 => "Badly Hurt",
-            _ => "Imminent Danger",
-        };
-    }
+    
     public HealthSystem()
     {
         ResetGame();
     }
 
-    public string ShowHUD()
-    {
-        healthStatus = HealthStatus(health);
-        // Implement HUD display
-        return $"Health: {health}" +
-            $"\nLives: {lives}" +
-            $"\nHealth Status: {healthStatus}" +
-            $"\nLevel: {level}" +
-            $"\nXP: {xp}" +
-            $"\nRequired XP to Level up: {requiredXP}";
-    }
+    
 
     public void TakeDamage(int damage)
     { 
@@ -80,14 +51,12 @@ public class HealthSystem
     public void Revive()
     {
         Heal(100);
-        lives--;
     }
 
     public void ResetGame()
     {
         // Reset all variables to default values
         health = maxHealth;
-        lives = 3;
         xp = 0;
         level = 1;
     }
