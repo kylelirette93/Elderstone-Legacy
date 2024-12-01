@@ -15,11 +15,13 @@ public class PlayerController : MonoBehaviour
     Vector3Int enemyPosition;
     bool isEnemies;
     bool isAttacking = false;
+    bool canCast = true;
 
     public Tilemap playerLayer;
     public Tilemap map;
     public Tile playerTile;
     public Tile openDoorTile;
+    public Tile groundTile;
     public Tilemap enemyLayer;
     private Tile enemyTile;
     private AnimatedTile spellHitTile;
@@ -27,12 +29,14 @@ public class PlayerController : MonoBehaviour
     public GameObject attackPanel;
     public TextMeshProUGUI healthText;
     public TextMeshProUGUI manaText;
+    public TextMeshProUGUI combatText;
     public HealthBar healthBar;
     public HealthBar enemyHealthBar;
     public ManaBar manaBar;
     public HealthSystem healthSystem = new HealthSystem();
     public HealthSystem manaSystem = new HealthSystem();
     EnemyController enemyController;
+    public GameObject gameOverPanel;
 
     public Inventory inventory;
 
@@ -52,6 +56,7 @@ public class PlayerController : MonoBehaviour
     {
         enemyController = enemyLayer.GetComponent<EnemyController>();
         inventory = GetComponent<Inventory>();
+        StartCoroutine(ClearCombatText(0f));
     }
 
     public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, 
@@ -87,6 +92,23 @@ public class PlayerController : MonoBehaviour
         player.SetTile(entryTilePos, playerTile);
     }
 
+    IEnumerator ClearCombatText(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Debug.Log("Clearing combat text.");
+        combatText.text = "";
+    }
+
+    public void UpdateCombatTextMissed(string attacker)
+    {
+        combatText.text = $"{attacker} has missed the player!";
+    }
+
+    public void UpdateCombatText(string attacker, int damage) 
+    {
+        combatText.text = $"{attacker} attacked for {damage} damage!";
+    }
+
     private void Update()
     {
         if (playerLayer == null || map == null || playerTile == null)
@@ -101,6 +123,18 @@ public class PlayerController : MonoBehaviour
         else
         {
             return;
+        }
+
+        // Check current mana to see if player can cast spell.
+        int lastCheckedMana = manaSystem.health;
+       
+        if (lastCheckedMana < 20)
+        {
+            canCast = false;
+        }
+        else
+        {
+            canCast = true;
         }
     }
     private void HandleInput()
@@ -220,14 +254,7 @@ public class PlayerController : MonoBehaviour
             if (!GameManager.instance.AreEnemiesRemaining())
             {
                 GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
-                Vector3Int entryTilePosition = GameManager.instance.FindEntryTilePosition(map);
-                playerLayer.SetTile(currentPosition, null);
-                // Set to entry tile position when transitioning through the door
-                currentPosition = entryTilePosition;
- 
-
-                Debug.Log("Player position after moving through door: " + currentPosition);
-                Debug.Log("Should be" + entryTilePosition);
+                StartCoroutine(SetPlayerPositionAfterDelay(0.1f));
                 return true;
             }
             else
@@ -253,6 +280,17 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    private IEnumerator SetPlayerPositionAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Vector3Int entryTilePosition = GameManager.instance.FindEntryTilePosition(map);
+        playerLayer.SetTile(currentPosition, null);
+        playerLayer.SetTile(entryTilePosition, playerTile);
+        currentPosition = entryTilePosition;
+
+        Debug.Log("Player position after moving through door: " + currentPosition);
+        Debug.Log("Should be" + entryTilePosition);
+    }
 
 
 
@@ -264,22 +302,35 @@ public class PlayerController : MonoBehaviour
             case "SwingSword":
                 SwordHit();
                 int swordDamage = 20;
+                UpdateCombatText(this.tag, swordDamage);
                 ApplyEnemyDamage(swordDamage);
+                StartCoroutine("ClearCombatText", 1f);
                 break;
             case "SpellAttack":
-                SpellHit();
-                int spellDamage = 30;
-                ApplyEnemyDamage(spellDamage);
-                DecrementMana();
-                enemyController.UpdateHealthText();
+                if (canCast)
+                {
+                    SpellHit();
+                    int spellDamage = 30;
+                    UpdateCombatText(this.tag, spellDamage);
+                    ApplyEnemyDamage(spellDamage);
+                    DecrementMana();
+                    enemyController.UpdateHealthText();
+                    StartCoroutine("ClearCombatText", 1f);
+                }
+                else
+                {
+                    combatText.text = "Not enough mana!";
+                    StartCoroutine(ClearCombatText(1f));
+                    Debug.Log("Combat text cleared.");
+                }
                 break;
         }
+
         // Disable the panel after attacking, reset time scale and end the player's turn.
         attackPanel.SetActive(false);
         Time.timeScale = 1;
         isAttacking = false;
 
-        
         if (GameManager.instance.AreEnemiesRemaining())
         {
             GameManager.instance.EndPlayerTurn();
@@ -291,7 +342,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    
+
 
     bool CheckForEnemies(Tilemap enemyLayer)
     {
@@ -433,7 +484,29 @@ public class PlayerController : MonoBehaviour
     public void Die()
     {
        healthBar.gameObject.SetActive(false);
-       
+       playerLayer.SetTile(currentPosition, null);
+       Invoke("GameOver", 2f);
+    }
+
+    void GameOver()
+    {
+        Time.timeScale = 0;
+        gameOverPanel.SetActive(true);
+    }
+
+    public void RestartButton()
+    {
+        gameOverPanel.SetActive(false);
+        Time.timeScale = 1;
+        GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
+        healthSystem.Heal(healthSystem.maxHealth);
+        manaSystem.Heal(manaSystem.maxHealth);
+        StartCoroutine(SetPlayerPositionAfterDelay(0.1f));
+    }
+
+    public void QuitButton()
+    {
+        Application.Quit();
     }
 
     public void UpdateHealthText()

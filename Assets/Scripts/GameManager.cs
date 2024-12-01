@@ -15,8 +15,9 @@ public class GameManager : MonoBehaviour
     MapGenerator mapGenerator;
     string mapGeneratorTag = "MapGenerator";
     EnemyController enemyController;
-
+    public GameObject gameOverPanel;
     Tilemap enemyLayer;
+
 
     private void Awake()
     {
@@ -90,6 +91,14 @@ public class GameManager : MonoBehaviour
         isEnemiesTurn = false;
         isPlayersTurn = true;
     }
+
+    void GameOver()
+    {
+        gameOverPanel.SetActive(true);
+        Time.timeScale = 0;
+    }
+
+    
 
     public Vector3Int LoadNextLevel(ref Tilemap map, ref Tilemap enemyLayer)
     {

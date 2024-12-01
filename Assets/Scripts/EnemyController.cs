@@ -275,7 +275,7 @@ public class EnemyController : MonoBehaviour
         }
         if (playerLayerTile == playerController.playerTile)
         {
-            AttackPlayer();
+            Invoke("AttackPlayer", 0.2f);
             return false;
         }
         // If no conditions are met, enemy can move.
@@ -292,6 +292,8 @@ public class EnemyController : MonoBehaviour
             if (!hasMissed)
             {
                 playerController.healthSystem.TakeDamage(attackDamage);
+                playerController.UpdateCombatText(this.tag, attackDamage);
+                playerController.StartCoroutine("ClearCombatText", 1f);
 
                 // Check if enemy is dead, if so deactivate health bar.
                 if (playerController.healthSystem.health <= 0f)
@@ -301,6 +303,8 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
+                playerController.UpdateCombatTextMissed(this.tag);
+                playerController.StartCoroutine("ClearCombatText", 1f);
                 Debug.Log("Enemy missed the player.");
             }
             playerController.UpdateHealthText();
