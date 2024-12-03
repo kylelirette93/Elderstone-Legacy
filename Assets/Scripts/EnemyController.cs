@@ -14,7 +14,7 @@ public class EnemyController : MonoBehaviour
     public Tile enemyTile;
     public bool isDead = false;
     private Tile playerTile;
-    bool isAttacking = false;
+    public bool isAttacking = false;
 
     public TextMeshProUGUI healthText;
     public HealthBar healthBar;
@@ -94,10 +94,14 @@ public class EnemyController : MonoBehaviour
 
     public void SpawnEnemy()
     {
-        Initialize(enemyLayer, playerLayer, enemyTile, playerTile, map, playerController.GetCurrentPosition(), minDistance);
+        Initialize(enemyLayer, playerLayer, enemyTile, playerTile, map, playerController.GetInitialPosition(), minDistance);
         GameManager.instance.RegisterEnemy(this);
         isDead = false;
         healthSystem.Revive();
+        healthBar.gameObject.SetActive(true);
+        float healthPercentage = (float)healthSystem.health / healthSystem.maxHealth;
+        healthBar.SetHealthBar(healthPercentage);
+        UpdateHealthText();
     }
 
 
@@ -178,7 +182,7 @@ public class EnemyController : MonoBehaviour
             }
 
 
-            if (GameManager.instance.isEnemiesTurn && !isAttacking)
+            if (GameManager.instance.isEnemiesTurn && !isAttacking && !playerController.isAttacking)
             {
                 moveTimer += Time.deltaTime;
 
@@ -189,7 +193,6 @@ public class EnemyController : MonoBehaviour
 
                     MoveEnemy(directionToPlayer);
                     moveTimer = 0.0f;
-                    GameManager.instance.EndEnemiesTurn();
                 }
             }
         }
@@ -197,6 +200,7 @@ public class EnemyController : MonoBehaviour
 
     void EndTurn()
     {
+        isAttacking = false;
         GameManager.instance.EndEnemiesTurn();
     }
 
@@ -238,10 +242,7 @@ public class EnemyController : MonoBehaviour
             enemyLayer.SetTile(currentPosition, null);
             currentPosition = newPosition;
             enemyLayer.SetTile(currentPosition, enemyTile);
-            if (!isAttacking)
-            {
-                GameManager.instance.EndEnemiesTurn();
-            }
+            EndTurn();
         }
     }
 
@@ -283,7 +284,8 @@ public class EnemyController : MonoBehaviour
         }
         if (playerLayerTile == playerController.playerTile)
         {
-            AttackPlayer();
+            isAttacking = true;
+            Invoke("AttackPlayer", 0.5f);
             return false;
         }
         // If no conditions are met, enemy can move.
@@ -292,6 +294,14 @@ public class EnemyController : MonoBehaviour
 
     void AttackPlayer()
     {
+        if (isDead)
+        {
+            isAttacking = false;
+            EndTurn();
+            return;
+        }
+
+        Debug.Log("Calculating damage");
         int randomValue = Random.Range(0, 100);
         bool hasMissed = randomValue < 20;
         int attackDamage = Random.Range(5, 10);
@@ -299,9 +309,10 @@ public class EnemyController : MonoBehaviour
         {
             if (!hasMissed)
             {
+                Debug.Log("Enemy hit player");
                 playerController.healthSystem.TakeDamage(attackDamage);
                 playerController.UpdateCombatText(this.tag, attackDamage);
-                playerController.StartCoroutine("ClearCombatText", 1f);
+                Invoke("ClearText", 1f);
 
                 // Check if enemy is dead, if so deactivate health bar.
                 if (playerController.healthSystem.health <= 0f)
@@ -311,17 +322,24 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
+                Debug.Log("Enemy missed");
                 playerController.UpdateCombatTextMissed(this.tag);
-                playerController.StartCoroutine("ClearCombatText", 1f);
+                Invoke("ClearText", 1f);
                 Debug.Log("Enemy missed the player.");
             }
             playerController.UpdateHealthText();
+            Invoke("EndTurn", 2f);
 
         }
         else
         {
             Debug.LogError("Player controller is not assigned.");
         }
+    }
+
+    void ClearText()
+    {
+        playerController.StartCoroutine("ClearCombatText", 0.5f);
     }
 
     public void Respawn()

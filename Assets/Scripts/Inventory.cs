@@ -59,8 +59,11 @@ public class Inventory : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
-        healthPotionCountText.text = items.GetValueOrDefault("HealthPotion", 0).ToString();
-        manaPotionCountText.text = items.GetValueOrDefault("ManaPotion", 0).ToString();
+        int healthPotionCount = items.GetValueOrDefault("HealthPotion", 0);
+        int manaPotionCount = items.GetValueOrDefault("ManaPotion", 0);
+
+        healthPotionCountText.text = healthPotionCount + "   H";
+        manaPotionCountText.text = manaPotionCount + "   M";
     }
 
 }

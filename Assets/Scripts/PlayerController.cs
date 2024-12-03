@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     private Vector3Int initialPosition;
     Vector3Int enemyPosition;
     bool isEnemies;
-    bool isAttacking = false;
+    public bool isAttacking = false;
     bool canCast = true;
 
     public Tilemap playerLayer;
@@ -39,6 +39,10 @@ public class PlayerController : MonoBehaviour
     public GameObject gameOverPanel;
 
     public Inventory inventory;
+
+    // Variables for win condition.
+    int killedEnemies = 0;
+    public TextMeshProUGUI killText;
 
     private void Awake()
     {
@@ -95,22 +99,31 @@ public class PlayerController : MonoBehaviour
     IEnumerator ClearCombatText(float delay)
     {
         yield return new WaitForSeconds(delay);
-        // Debug.Log("Clearing combat text.");
+         Debug.Log("Clearing combat text.");
         combatText.text = "";
     }
 
     public void UpdateCombatTextMissed(string attacker)
     {
         combatText.text = $"{attacker} has missed the player!";
+        Debug.Log("Updating combat text. Enemy missed.");
     }
 
     public void UpdateCombatText(string attacker, int damage)
     {
         combatText.text = $"{attacker} attacked for {damage} damage!";
+        Debug.Log("Updating combat text. Enemy attacks player.");
     }
+
+    
 
     private void Update()
     {
+        if (killedEnemies >= 5)
+        {
+            StartCoroutine(GameManager.instance.WinGame(2f));
+        }
+
         if (playerLayer == null || map == null || playerTile == null)
         {
             // Debug.LogError("PlayerController is not properly initialized.");
@@ -137,6 +150,8 @@ public class PlayerController : MonoBehaviour
             canCast = true;
         }
     }
+
+
     private void HandleInput()
     {
         if (isAttacking)
@@ -274,7 +289,7 @@ public class PlayerController : MonoBehaviour
             // Trigger combat if player walks into enemy.
             isAttacking = true;
             attackPanel.SetActive(true);
-            Time.timeScale = 0;
+            Time.timeScale = 1;
             return false;
         }
         // If no conditions are met, player can move.
@@ -306,7 +321,7 @@ public class PlayerController : MonoBehaviour
                 int swordDamage = 20;
                 UpdateCombatText(this.tag, swordDamage);
                 ApplyEnemyDamage(swordDamage);
-                StartCoroutine("ClearCombatText", 1f);
+                StartCoroutine(ClearCombatText(0.5f));
                 break;
             case "SpellAttack":
                 if (canCast)
@@ -317,21 +332,21 @@ public class PlayerController : MonoBehaviour
                     ApplyEnemyDamage(spellDamage);
                     DecrementMana();
                     enemyController.UpdateHealthText();
-                    StartCoroutine("ClearCombatText", 1f);
+                    StartCoroutine(ClearCombatText(0.5f));
                 }
                 else
                 {
                     combatText.text = "Not enough mana!";
-                    StartCoroutine(ClearCombatText(1f));
+                    StartCoroutine(ClearCombatText(0.5f));
                     Debug.Log("Combat text cleared.");
                 }
                 break;
         }
 
         // Disable the panel after attacking, reset time scale and end the player's turn.
+        isAttacking = false;
         attackPanel.SetActive(false);
         Time.timeScale = 1;
-        isAttacking = false;
 
         if (GameManager.instance.AreEnemiesRemaining())
         {
@@ -367,8 +382,15 @@ public class PlayerController : MonoBehaviour
         // Check if enemy is dead, if so deactivate health bar.
         if (enemyController.healthSystem.health <= 0f)
         {
+            killedEnemies++;
+            UpdateKillText();
             enemyController.healthBar.gameObject.SetActive(false);
         }
+    }
+
+    void UpdateKillText()
+    {
+        killText.text = $"Killed: {killedEnemies}/5";
     }
 
     void UseManaPotion()
@@ -492,11 +514,15 @@ public class PlayerController : MonoBehaviour
 
     public void RestartButton()
     {
+        killedEnemies = 0;
         gameOverPanel.SetActive(false);
         Time.timeScale = 1;
         GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
         healthSystem.Heal(healthSystem.maxHealth);
+        healthBar.gameObject.SetActive(true);
+        UpdateHealthText();
         manaSystem.Heal(manaSystem.maxHealth);
+        UpdateManaText();
         StartCoroutine(SetPlayerPositionAfterDelay(0.1f));
     }
 
