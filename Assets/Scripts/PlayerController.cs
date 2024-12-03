@@ -59,7 +59,7 @@ public class PlayerController : MonoBehaviour
         StartCoroutine(ClearCombatText(0f));
     }
 
-    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer, 
+    public void Initialize(Tilemap playerLayer, Tile playerTile, Tilemap enemyLayer,
         Tile enemyTile, AnimatedTile spellHitTile, AnimatedTile swordAttackTile, Tilemap map)
     {
         this.playerLayer = playerLayer;
@@ -77,8 +77,8 @@ public class PlayerController : MonoBehaviour
         playerLayer.SetTile(currentPosition, playerTile);
     }
 
-    public Vector3Int GetInitialPosition() 
-    {  
+    public Vector3Int GetInitialPosition()
+    {
         return initialPosition;
     }
 
@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator ClearCombatText(float delay)
     {
         yield return new WaitForSeconds(delay);
-        Debug.Log("Clearing combat text.");
+        // Debug.Log("Clearing combat text.");
         combatText.text = "";
     }
 
@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviour
         combatText.text = $"{attacker} has missed the player!";
     }
 
-    public void UpdateCombatText(string attacker, int damage) 
+    public void UpdateCombatText(string attacker, int damage)
     {
         combatText.text = $"{attacker} attacked for {damage} damage!";
     }
@@ -113,7 +113,7 @@ public class PlayerController : MonoBehaviour
     {
         if (playerLayer == null || map == null || playerTile == null)
         {
-            Debug.LogError("PlayerController is not properly initialized.");
+            // Debug.LogError("PlayerController is not properly initialized.");
             return;
         }
         if (GameManager.instance.isPlayersTurn && !isAttacking)
@@ -127,7 +127,7 @@ public class PlayerController : MonoBehaviour
 
         // Check current mana to see if player can cast spell.
         int lastCheckedMana = manaSystem.health;
-       
+
         if (lastCheckedMana < 20)
         {
             canCast = false;
@@ -166,7 +166,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.M))
         {
             UseManaPotion();
-        }    
+        }
     }
 
     public void ResetPlayerPosition()
@@ -209,7 +209,7 @@ public class PlayerController : MonoBehaviour
 
         if (map == null || playerLayer == null)
         {
-            Debug.LogError("Map or playerLayer is not assigned.");
+            // Debug.LogError("Map or playerLayer is not assigned yet.");
             return false;
         }
 
@@ -269,8 +269,9 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
-        if (enemyLayerTile == enemyController.enemyTile)
+        if (enemyLayerTile == enemyController.enemyTile && GameManager.instance.isPlayersTurn)
         {
+            // Trigger combat if player walks into enemy.
             isAttacking = true;
             attackPanel.SetActive(true);
             Time.timeScale = 0;
@@ -282,14 +283,15 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator SetPlayerPositionAfterDelay(float delay)
     {
+        // Player should spawn on the entry tile. Needs coroutine because of dependencies.
         yield return new WaitForSeconds(delay);
         Vector3Int entryTilePosition = GameManager.instance.FindEntryTilePosition(map);
         playerLayer.SetTile(currentPosition, null);
         playerLayer.SetTile(entryTilePosition, playerTile);
         currentPosition = entryTilePosition;
 
-        Debug.Log("Player position after moving through door: " + currentPosition);
-        Debug.Log("Should be" + entryTilePosition);
+        // Debug.Log("Player position after moving through door: " + currentPosition);
+        // Debug.Log("Should be" + entryTilePosition);
     }
 
 
@@ -338,6 +340,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            // If no enemies remain, player can continue.
             GameManager.instance.EndEnemiesTurn();
         }
     }
@@ -370,42 +373,36 @@ public class PlayerController : MonoBehaviour
 
     void UseManaPotion()
     {
+        // Player used a mana potion.
         inventory.RemoveItem("ManaPotion", 1);
-        // Increment mana.
         manaSystem.Heal(30);
 
-        // Update mana bar UI image with float value for fill amount.
         float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
         manaBar.SetManaBar(manaPercentage);
 
-        // Update mana text.
         UpdateManaText();
     }
 
     void DecrementMana()
     {
-        // Decrement mana.
+        // Player cast a spell that cost 20 mana.
         manaSystem.TakeDamage(20);
 
-        // Update mana bar UI image with float value for fill amount.
         float manaPercentage = (float)manaSystem.health / manaSystem.maxHealth;
         manaBar.SetManaBar(manaPercentage);
 
-        // Update mana text.
         UpdateManaText();
     }
 
     void UseHealthPotion()
     {
+        // Player used a health potion.
         inventory.RemoveItem("HealthPotion", 1);
-        // Increment health.
         healthSystem.Heal(30);
 
-        // Update health bar UI image with float value for fill amount.
         float healthPercentage = (float)healthSystem.health / healthSystem.maxHealth;
         healthBar.SetHealthBar(healthPercentage);
 
-        // Update health text.
         UpdateHealthText();
     }
 
@@ -416,7 +413,7 @@ public class PlayerController : MonoBehaviour
 
         // Create seperate instance of sword attack animated tile.
         AnimatedTile modifiedSwordAttackTile = ScriptableObject.CreateInstance<AnimatedTile>();
-        Debug.Log("Created scriptable object.");
+        // Debug.Log("Created scriptable object.");
 
         // Modify the sword attack animation.
         modifiedSwordAttackTile.m_AnimatedSprites = swordAttackTile.m_AnimatedSprites;
@@ -435,25 +432,21 @@ public class PlayerController : MonoBehaviour
 
     public void SpellHit()
     {
-        // Get the enemy's position.
+        // Pretty much the same as sword hit logic.
         enemyPosition = enemyController.GetEnemyPosition();
 
-        // Create seperate instance of spell hit animated tile.
         AnimatedTile modifiedSpellHitTile = ScriptableObject.CreateInstance<AnimatedTile>();
 
-        // Modify the spell hit animation.
         modifiedSpellHitTile.m_AnimatedSprites = spellHitTile.m_AnimatedSprites;
         modifiedSpellHitTile.m_AnimationStartFrame = spellHitTile.m_AnimationStartFrame;
         modifiedSpellHitTile.m_MinSpeed = 4f;
         modifiedSpellHitTile.m_MaxSpeed = 4f;
         modifiedSpellHitTile.m_AnimationStartTime = Time.time;
-        float endTime = 
+        float endTime =
             modifiedSpellHitTile.m_AnimatedSprites.Length / modifiedSpellHitTile.m_MaxSpeed;
 
-        // Set the animated tile to the enemy's position.
         enemyLayer.SetTile(enemyPosition, modifiedSpellHitTile);
 
-        // Start the coroutine to replace or clear tile after animation ends.
         StartCoroutine(ClearTileAfterAnimation(enemyPosition, modifiedSpellHitTile, endTime));
     }
 
@@ -470,6 +463,7 @@ public class PlayerController : MonoBehaviour
             enemyController.isDead = true;
             TileBase groundTile = map.GetComponent<MapGenerator>().groundTile;
             enemyLayer.SetTile(position, groundTile);
+
             // Update game manager to remove remaining enemy from list.
             GameManager.instance.OnEnemyDeath(enemyController);
             GameManager.instance.DeregisterEnemy(enemyController);
@@ -483,9 +477,11 @@ public class PlayerController : MonoBehaviour
 
     public void Die()
     {
-       healthBar.gameObject.SetActive(false);
-       playerLayer.SetTile(currentPosition, null);
-       Invoke("GameOver", 2f);
+        // Handle player death.
+        healthBar.gameObject.SetActive(false);
+        playerLayer.SetTile(currentPosition, null);
+        enemyController.Respawn();
+        Invoke("GameOver", 2f);
     }
 
     void GameOver()

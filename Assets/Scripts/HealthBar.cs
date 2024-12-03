@@ -8,7 +8,7 @@ public class HealthBar : MonoBehaviour
     // Sets the fill amount based on health
     public void SetHealthBar(float amount)
     {
-        Debug.Log("Setting health bar amount to: " + amount);
+        // Debug.Log("Setting health bar amount to: " + amount);
         healthBarImage.fillAmount = amount;
     }
 

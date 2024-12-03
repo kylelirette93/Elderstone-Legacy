@@ -14,6 +14,7 @@ public class EnemyController : MonoBehaviour
     public Tile enemyTile;
     public bool isDead = false;
     private Tile playerTile;
+    bool isAttacking = false;
 
     public TextMeshProUGUI healthText;
     public HealthBar healthBar;
@@ -40,7 +41,7 @@ public class EnemyController : MonoBehaviour
         GameManager.instance.RegisterEnemy(this);
     }
 
-    public void Initialize(Tilemap enemyLayer, Tilemap playerLayer, Tile enemyTile, 
+    public void Initialize(Tilemap enemyLayer, Tilemap playerLayer, Tile enemyTile,
         Tile playerTile, Tilemap map, Vector3Int playerPosition, int minDistance)
     {
         this.enemyLayer = enemyLayer;
@@ -88,7 +89,7 @@ public class EnemyController : MonoBehaviour
             Debug.Log("No empty position found.");
         }
 
-        
+
     }
 
     public void SpawnEnemy()
@@ -173,12 +174,11 @@ public class EnemyController : MonoBehaviour
         {
             if (enemyLayer == null || map == null || enemyTile == null)
             {
-                Debug.LogError("Enemy controller is not properly initialized.");
                 return;
             }
 
 
-            if (GameManager.instance.isEnemiesTurn)
+            if (GameManager.instance.isEnemiesTurn && !isAttacking)
             {
                 moveTimer += Time.deltaTime;
 
@@ -189,11 +189,15 @@ public class EnemyController : MonoBehaviour
 
                     MoveEnemy(directionToPlayer);
                     moveTimer = 0.0f;
-
                     GameManager.instance.EndEnemiesTurn();
                 }
             }
         }
+    }
+
+    void EndTurn()
+    {
+        GameManager.instance.EndEnemiesTurn();
     }
 
     private Vector3Int GetPlayerPosition()
@@ -234,9 +238,13 @@ public class EnemyController : MonoBehaviour
             enemyLayer.SetTile(currentPosition, null);
             currentPosition = newPosition;
             enemyLayer.SetTile(currentPosition, enemyTile);
-            GameManager.instance.EndEnemiesTurn();
+            if (!isAttacking)
+            {
+                GameManager.instance.EndEnemiesTurn();
+            }
         }
     }
+
 
     private bool CanMoveTo(Vector3Int position)
     {
@@ -275,14 +283,14 @@ public class EnemyController : MonoBehaviour
         }
         if (playerLayerTile == playerController.playerTile)
         {
-            Invoke("AttackPlayer", 0.2f);
+            AttackPlayer();
             return false;
         }
         // If no conditions are met, enemy can move.
         return true;
     }
 
-    void AttackPlayer() 
+    void AttackPlayer()
     {
         int randomValue = Random.Range(0, 100);
         bool hasMissed = randomValue < 20;
@@ -316,7 +324,14 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    
+    public void Respawn()
+    {
+        currentPosition = initialPosition;
+        // Handle player death.
+        enemyLayer.SetTile(currentPosition, null);
+    }
+
+
 
     public void UpdateHealthText()
     {
