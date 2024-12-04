@@ -301,7 +301,7 @@ public class EnemyController : MonoBehaviour
             return;
         }
 
-        Debug.Log("Calculating damage");
+        // Debug.Log("Calculating damage");
         int randomValue = Random.Range(0, 100);
         bool hasMissed = randomValue < 20;
         int attackDamage = Random.Range(5, 10);
@@ -309,7 +309,7 @@ public class EnemyController : MonoBehaviour
         {
             if (!hasMissed)
             {
-                Debug.Log("Enemy hit player");
+                // Debug.Log("Enemy hit player");
                 playerController.healthSystem.TakeDamage(attackDamage);
                 playerController.UpdateCombatText(this.tag, attackDamage);
                 Invoke("ClearText", 1f);
@@ -322,10 +322,10 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
-                Debug.Log("Enemy missed");
+                // Debug.Log("Enemy missed");
                 playerController.UpdateCombatTextMissed(this.tag);
                 Invoke("ClearText", 1f);
-                Debug.Log("Enemy missed the player.");
+                // Debug.Log("Enemy missed the player.");
             }
             playerController.UpdateHealthText();
             Invoke("EndTurn", 2f);
@@ -333,7 +333,7 @@ public class EnemyController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Player controller is not assigned.");
+            // Debug.LogError("Player controller is not assigned.");
         }
     }
 

@@ -99,20 +99,20 @@ public class PlayerController : MonoBehaviour
     IEnumerator ClearCombatText(float delay)
     {
         yield return new WaitForSeconds(delay);
-         Debug.Log("Clearing combat text.");
+        // Debug.Log("Clearing combat text.");
         combatText.text = "";
     }
 
     public void UpdateCombatTextMissed(string attacker)
     {
         combatText.text = $"{attacker} has missed the player!";
-        Debug.Log("Updating combat text. Enemy missed.");
+        // Debug.Log("Updating combat text. Enemy missed.");
     }
 
     public void UpdateCombatText(string attacker, int damage)
     {
         combatText.text = $"{attacker} attacked for {damage} damage!";
-        Debug.Log("Updating combat text. Enemy attacks player.");
+        // Debug.Log("Updating combat text. Enemy attacks player.");
     }
 
     
