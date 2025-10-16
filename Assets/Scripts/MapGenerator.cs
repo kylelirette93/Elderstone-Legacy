@@ -15,7 +15,7 @@ public class MapGenerator : MonoBehaviour
     private const int maxPotions = 4;
     private const int maxHouses = 4;
 
-    private string[] mapPaths = { "level01.txt", "level02.txt" };
+    private string[] mapPaths = { "level01.txt", "level02.txt", "level03.txt", "level04.txt", "level05.txt" };
 
     string playerTag = "Player";
     PlayerController playerController;
