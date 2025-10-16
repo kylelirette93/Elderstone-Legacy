@@ -101,11 +101,12 @@ public class GameManager : MonoBehaviour
 
     
 
-    public Vector3Int LoadNextLevel(ref Tilemap map, ref Tilemap enemyLayer)
+    public Vector3Int LoadNextLevel(ref Tilemap map, ref Tilemap enemyLayer, ref Tilemap playerLayer)
     {
         // Clear all existing tilemaps.
         map.ClearAllTiles();
         enemyLayer.ClearAllTiles();
+        playerLayer.ClearAllTiles();
 
 
         // Generate another map.
@@ -113,6 +114,7 @@ public class GameManager : MonoBehaviour
         enemyController.SpawnEnemy();
         map = mapGenerator.map;
         enemyLayer = mapGenerator.enemyLayer;
+        isPlayersTurn = true;
         
 
         Vector3Int entryTilePosition = FindEntryTilePosition(map);

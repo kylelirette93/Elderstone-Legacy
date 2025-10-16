@@ -268,7 +268,7 @@ public class PlayerController : MonoBehaviour
         {
             if (!GameManager.instance.AreEnemiesRemaining())
             {
-                GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
+                GameManager.instance.LoadNextLevel(ref map, ref enemyLayer, ref playerLayer);
                 StartCoroutine(SetPlayerPositionAfterDelay(0.1f));
                 return true;
             }
@@ -517,7 +517,7 @@ public class PlayerController : MonoBehaviour
         killedEnemies = 0;
         gameOverPanel.SetActive(false);
         Time.timeScale = 1;
-        GameManager.instance.LoadNextLevel(ref map, ref enemyLayer);
+        GameManager.instance.LoadNextLevel(ref map, ref enemyLayer, ref playerLayer);
         healthSystem.Heal(healthSystem.maxHealth);
         healthBar.gameObject.SetActive(true);
         UpdateHealthText();
