@@ -3,11 +3,11 @@ using UnityEngine.Tilemaps;
 
 public class TilemapConverter
 {
-    public static void ConvertMapToTilemap(string mapData, Tilemap map, Tile borderTile, Tile groundTile, Tile doorTile,
+    public static void ConvertMapToTilemap(MapData mapData, Tilemap map, Tile borderTile, Tile groundTile, Tile doorTile,
     Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile entryTile)
     {
         // Create an array of rows, split the string at each new line.
-        string[] rows = mapData.Split('\n');
+        string[] rows = mapData.Tiles;
 
         // Offset to determine position of map in Unity.
         Vector3Int offset = new Vector3Int(-10, -7, 0);

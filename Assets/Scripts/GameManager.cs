@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     public bool isPlayersTurn = true;
     public bool isEnemiesTurn = false;
     private List<EnemyController> activeEnemies = new List<EnemyController>();
-    MapGenerator mapGenerator;
+    public MapGenerator mapGenerator;
     string mapGeneratorTag = "MapGenerator";
     EnemyController enemyController;
     public GameObject gameOverPanel;

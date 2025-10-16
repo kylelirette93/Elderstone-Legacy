@@ -15,8 +15,7 @@ public class MapGenerator : MonoBehaviour
     private const int maxPotions = 4;
     private const int maxHouses = 4;
 
-    private string[] mapPaths = { "level01.txt", "level02.txt", "level03.txt", "level04.txt", "level05.txt" };
-
+    private string[] mapPaths = new string[3];
     string playerTag = "Player";
     PlayerController playerController;
     string enemyTag = "Enemy";
@@ -24,6 +23,10 @@ public class MapGenerator : MonoBehaviour
 
     private void Awake()
     {
+        mapPaths[0] = "level01.json";
+        mapPaths[1] = "level02.json";
+        mapPaths[2] = "level03.json";
+
         // Random number of chest and houses to place.
         potionsToPlace = Random.Range(1, maxPotions);
         housesToPlace = Random.Range(1, maxHouses);
@@ -46,10 +49,17 @@ public class MapGenerator : MonoBehaviour
         string randomMapPath = mapPaths[Random.Range(0, mapPaths.Length)];
 
         // Load and convert the map data to a tilemap.
-        string mapData = MapLoader.LoadPremadeMap(randomMapPath);
-        Debug.Log(mapData);
+        MapData mapData = MapLoader.LoadPremadeMap(randomMapPath);
         TilemapConverter.ConvertMapToTilemap(mapData, map, borderTile, groundTile, doorTile,
             manaTile, healthTile, houseTiles, entryTile);
+    }
+
+    public void ReloadMap(MapData mapData)
+    {
+        map.ClearAllTiles();
+        TilemapConverter.ConvertMapToTilemap(mapData, map, borderTile, groundTile, doorTile,
+            manaTile, healthTile, houseTiles, entryTile);
+
     }
 
 
