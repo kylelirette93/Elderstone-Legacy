@@ -38,6 +38,7 @@ public class MapGenerator : MonoBehaviour
         lastWriteTime = File.GetLastWriteTime(fullPath);
         nextTimeToCheck = Time.time + checkInterval;
     }
+
     void Spawn()
     {
         SpawnPlayer();
@@ -50,9 +51,10 @@ public class MapGenerator : MonoBehaviour
         TilemapConverter.ConvertMapToTilemap(mapData, map, borderTile, groundTile, doorTile,
             manaTile, healthTile, houseTile, entryTile);
     }
-    // Open map file to edit in external editor.
+
     public void OpenMapFile()
     {
+        // Open map file to edit in external editor.
         string fullPath = Path.Combine(Application.streamingAssetsPath, mapPath);
 
 #if UNITY_EDITOR || UNITY_STANDALONE
@@ -77,6 +79,7 @@ public class MapGenerator : MonoBehaviour
 
         if (Time.time >= nextTimeToCheck)
         {
+            // Reset timer and check file change.
             nextTimeToCheck = Time.time + checkInterval;
             CheckForFileChange();
         }
@@ -84,9 +87,11 @@ public class MapGenerator : MonoBehaviour
 
     private void CheckForFileChange()
     {
+        // Get the last write time of map file.
         string fullPath = Path.Combine(Application.streamingAssetsPath, mapPath);
         DateTime currentWriteTime = File.GetLastWriteTime(fullPath);
 
+        // If it's different from stored time, reload map.
         if (currentWriteTime != lastWriteTime)
         {
             lastWriteTime = currentWriteTime;

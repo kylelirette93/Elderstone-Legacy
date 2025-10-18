@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 
 public class HealthSystem
 {
@@ -17,11 +16,11 @@ public class HealthSystem
     
 
     public void TakeDamage(int damage)
-    { 
-            health -= damage;
+    {
+        health -= damage;
 
-            // Clamp the health so it stays in range
-            health = Math.Clamp(health, 0, maxHealth);    
+        // Clamp the health so it stays in range
+        health = Math.Clamp(health, 0, maxHealth);
     }
 
 
@@ -51,4 +50,12 @@ public class HealthSystem
         // Reset all variables to default values
         health = maxHealth;
     }
+}
+
+[Serializable] 
+public class PlayerSettings
+{
+    public int health;
+    public int maxHealth = 100;
+
 }

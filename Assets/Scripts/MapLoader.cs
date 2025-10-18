@@ -1,18 +1,21 @@
 using System.IO;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 public class MapLoader
 {
     public static MapData LoadPremadeMap(string mapFilePath)
     {
+        // Read all text from file at path.
         string fullPath = Application.streamingAssetsPath + "/" + mapFilePath;
-        Debug.Log($"[MapLoader] Loading JSON from: {fullPath}");
-        string jsonString = File.ReadAllText(fullPath);
 
-        // Deserialize the string into map data.
-        MapData mapData = JsonUtility.FromJson<MapData>(jsonString);
-        return mapData;
+        if (!File.Exists(fullPath))
+        {
+            Debug.LogError("Map not found at path...");
+            return null;
+        }
+
+        string json = File.ReadAllText(fullPath);
+        return JsonUtility.FromJson<MapData>(json);      
     }
 }
 
