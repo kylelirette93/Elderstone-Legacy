@@ -4,13 +4,13 @@ using UnityEngine.Tilemaps;
 public class TilemapConverter
 {
     public static void ConvertMapToTilemap(MapData mapData, Tilemap map, Tile borderTile, Tile groundTile, Tile doorTile,
-    Tile manaTile, Tile healthTile, Tile[] houseTiles, Tile entryTile)
+    Tile manaTile, Tile healthTile, Tile houseTile, Tile entryTile)
     {
         // Create an array of rows, split the string at each new line.
         string[] rows = mapData.Tiles;
-
-        // Offset to determine position of map in Unity.
-        Vector3Int offset = new Vector3Int(-10, -7, 0);
+        int mapWidth = rows[0].Length;
+        int mapHeight = rows.Length;
+        Vector3Int offset = new Vector3Int(-mapWidth / 2, -mapHeight / 2, 0);
 
         // Iterate through each character.
         for (int y = 0; y < rows.Length; y++)
@@ -19,7 +19,7 @@ public class TilemapConverter
             {
                 // Apply offset to position of each character. 
                 // Reverse the y-axis to match Unity's tilemap system.
-                Vector3Int tilePosition = new Vector3Int(x, rows.Length - y - 1, 0) + offset;  // Reverse y here.
+                Vector3Int tilePosition = new Vector3Int(x, rows.Length - y - 1, 0) + offset;
 
                 switch (rows[y][x])
                 {
@@ -43,15 +43,8 @@ public class TilemapConverter
                         map.SetTile(tilePosition, entryTile);
                         break;
                     case '@':
-                        // Place a random house.
-                        int randomHouseIndex = Random.Range(0, houseTiles.Length);
-                        Tile houseTile = houseTiles[randomHouseIndex];
-                        // Assign name of tile for collision detection.
-                        houseTile.name = "HouseTile";
                         map.SetTile(tilePosition, houseTile);
-                        break;
-                    
-     
+                        break;   
                 }
             }
         }
